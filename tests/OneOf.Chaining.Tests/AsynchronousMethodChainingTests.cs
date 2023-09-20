@@ -87,7 +87,7 @@ public class AsynchronousMethodChainingTests
             return s;
         }
 
-        async Task<Error> Job1OnFailure(StateStore s, Error e)
+        async Task<OneOf<StateStore, Error>> Job1OnFailure(StateStore s, Error e)
         {
             await Task.Delay(100);
             job1OnFailureCalled = true;
@@ -100,7 +100,7 @@ public class AsynchronousMethodChainingTests
             return new Error();
         }
 
-        async Task<Error> Job2OnFailure(StateStore s, Error e)
+        async Task<OneOf<StateStore, Error>> Job2OnFailure(StateStore s, Error e)
         {
             await Task.Delay(100);
             job2OnFailureCalled = true;
@@ -114,7 +114,7 @@ public class AsynchronousMethodChainingTests
             throw new Exception("Job3 should not be run");
         }
 
-        async Task<Error> Job3OnFailure(StateStore s, Error e)
+        async Task<OneOf<StateStore, Error>> Job3OnFailure(StateStore s, Error e)
         {
             await Task.Delay(100);
             job3OnFailureCalled = true;

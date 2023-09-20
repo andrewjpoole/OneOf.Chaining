@@ -1,7 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
 using OneOf;
-using OneOf.Chaining.Examples.WebAPI.Handlers;
-using OneOf.Chaining.Examples.WebAPI.Services;
+using OneOf.Chaining.Examples.Application.Handlers;
+using OneOf.Chaining.Examples.Application.Models.Requests;
+using OneOf.Chaining.Examples.Application.Orchestration;
+using OneOf.Chaining.Examples.Application.Services;
+using OneOf.Chaining.Examples.Domain.Outcomes;
+using OneOf.Chaining.Examples.WebAPI;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,14 +27,26 @@ app.UseHttpsRedirection();
 app.MapGet("/weatherforecast/{region}/{date}", (
     [FromRoute]string region, 
     [FromRoute]DateTime date, 
-    [FromServices]IGetWeatherReportRequestHandler handler) => CreateResponseFor(() => handler.Handle(region, date)));
+    [FromServices]IGetWeatherReportRequestHandler handler) 
+    => CreateResponseFor(() => handler.Handle(region, date)));
 
 
-static async Task<IResult> CreateResponseFor(Func<Task<OneOf<WeatherReport, Failure>>> handleRequestFunc)
+
+app.MapPost("/collectedweatherdata/{location}", (
+    [FromRoute] string location,
+    [FromBody] CollectedWeatherDataModel data,
+    [FromServices] IPostWeatherReportDataHandler handler,
+    [FromServices] IWeatherDataValidator weatherDataValidator, 
+    [FromServices] ILocationManager locationManager) 
+    => CreateResponseFor(() => handler.Handle(location, data, weatherDataValidator, locationManager)));
+
+
+
+static async Task<IResult> CreateResponseFor<TSuccess>(Func<Task<OneOf<TSuccess, Failure>>> handleRequestFunc)
 {
     var response = await handleRequestFunc.Invoke();
     return response.Match(
-        successfulReport => Results.Ok(successfulReport),
+        success => Results.Ok(success),
         failure => failure.Match(
             invalidRequest =>
             {
@@ -42,4 +58,3 @@ static async Task<IResult> CreateResponseFor(Func<Task<OneOf<WeatherReport, Fail
 }
 
 app.Run();
-

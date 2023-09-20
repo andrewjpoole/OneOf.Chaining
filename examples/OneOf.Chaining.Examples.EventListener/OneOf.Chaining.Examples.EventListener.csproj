@@ -7,11 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="OneOf" Version="3.0.255" />
-  </ItemGroup>
-
-  <ItemGroup>
-	  <ProjectReference Include="..\OneOf.Chaining.Examples.Application\OneOf.Chaining.Examples.Application.csproj" />
+    <ProjectReference Include="..\OneOf.Chaining.Examples.Infrastructure\OneOf.Chaining.Examples.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

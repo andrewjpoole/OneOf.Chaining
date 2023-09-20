@@ -1,5 +1,6 @@
 ﻿using OneOf;
 using OneOf.Types;
+using System.Linq.Expressions;
 // ReSharper disable InconsistentNaming
 
 namespace OneOf.Chaining;
@@ -45,7 +46,7 @@ public static class AsynchronousMethodChainingExtensions
     public static async Task<OneOf<T, TFailure>> Then<T, TFailure>(
         this Task<OneOf<T, TFailure>> currentJobResult, 
         Func<T, Task<OneOf<T, TFailure>>> nextJob, 
-        Func<T, TFailure, Task<TFailure>> onFailure)
+        Func<T, TFailure, Task<OneOf<T,TFailure>>> onFailure)
     {
         // Inspect result of (probably already awaited) currentJobResult, if its a TFailure return it...
         var TOrFailure = await currentJobResult;
@@ -59,10 +60,6 @@ public static class AsynchronousMethodChainingExtensions
         // If next job returned a T (Success) return it...
         if (result.IsT0)
             return result;
-
-        // Otherwise if onFailure is null, return the failure...
-        //if (onFailure is null)
-        //    return result;
         
         // Otherwise invoke onFailure and return the final resulting TFailure...
         var finalFailure = await onFailure(currentT, result.AsT1);
@@ -86,7 +83,7 @@ public static class AsynchronousMethodChainingExtensions
         this Task<OneOf<T, TFailure>> currentJobResult, 
         Func<T, bool> condition,
         Func<T, Task<OneOf<T, TFailure>>> nextJob, 
-        Func<T, TFailure, Task<TFailure>>? onFailure = null)
+        Func<T, TFailure, Task<OneOf<T, TFailure>>>? onFailure = null)
     {
         // Inspect result of (probably already awaited) currentJobResult, if its a TFailure return it...
         var TOrFailure = await currentJobResult;
