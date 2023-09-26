@@ -18,6 +18,7 @@ public class GetWeatherReportRequestHandler : IGetWeatherReportRequestHandler
     }
 
     /*
+    // Example of what we didn't want...
     public async Task<OneOf<WeatherReport, Failure>> Handle(string requestedRegion, DateTime requestedDate)
     {
         var isValidRequest = await regionValidator.Validate(requestedRegion);
@@ -26,7 +27,7 @@ public class GetWeatherReportRequestHandler : IGetWeatherReportRequestHandler
 
         var dateCheckPassed = await dateChecker.CheckDate(requestedDate);
         if (!dateCheckPassed)
-            return new InvalidRequest();
+            return new InvalidRequestFailure();
 
         var cacheCheckResult = CheckCache(requestedRegion, requestedDate);
         if (cacheCheckResult.Hit)
@@ -69,7 +70,8 @@ public class GetWeatherReportRequestHandler : IGetWeatherReportRequestHandler
             .Then(regionValidator.ValidateRegion)
             .Then(dateChecker.CheckDate)
             .Then(CheckCache)
-            .Then(weatherForecastGenerator.Generate);
+            .IfThen(report => report.PopulatedFromCache is false, 
+                weatherForecastGenerator.Generate);
     }
 
     public async Task<OneOf<WeatherReport, Failure>> CheckCache(WeatherReport report)
@@ -87,10 +89,13 @@ public class GetWeatherReportRequestHandler : IGetWeatherReportRequestHandler
 
 
     /*
-     * Demonstrate:
-     * extra args
-     * out args if method not async
-     * go through Then extension method code
-     * onFailure - shown later
+     * 1. details object passing through on success (containing state)
+     * 2. show actual report arg (remove MethodGrouping)
+     * 3. add an additional arg
+     * 4. add an out arg
+     * 5. mention: navigation, debugging, testing
+     * 6. go through Then extension method code
+     * 7. IfThen .IfThen(report => report.PopulatedFromCache is false, 
+     * 8. onFailure
      */
 }

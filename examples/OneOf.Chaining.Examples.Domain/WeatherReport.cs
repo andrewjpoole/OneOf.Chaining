@@ -8,6 +8,7 @@ public class WeatherReport
     public DateTime RequestedDate { get; }
     public Guid RequestId { get; }
 
+    public bool PopulatedFromCache { get; private set; }
     public int Temperature { get; private set; }
     public string Summary { get; private set; }
 

@@ -1,7 +1,10 @@
 ﻿using OneOf.Chaining.Examples.Application.Models.Events.WeatherModelingEvents;
 using OneOf.Chaining.Examples.Application.Orchestration;
 using OneOf.Chaining.Examples.Application.Services;
+using OneOf.Chaining.Examples.Infrastructure.ContributorPayments;
 using OneOf.Chaining.Examples.Infrastructure.MessageBus;
+using OneOf.Chaining.Examples.Infrastructure.Notifications;
+using OneOf.Chaining.Examples.Infrastructure.Persistence;
 
 namespace OneOf.Chaining.Examples.EventListener.Extensions;
 

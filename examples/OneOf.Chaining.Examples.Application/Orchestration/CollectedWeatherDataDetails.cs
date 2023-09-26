@@ -1,5 +1,7 @@
-﻿using OneOf.Chaining.Examples.Application.Models.Events.WeatherModelingEvents;
+﻿using OneOf.Chaining.Examples.Application.Models;
+using OneOf.Chaining.Examples.Application.Models.Events.WeatherModelingEvents;
 using OneOf.Chaining.Examples.Application.Models.Requests;
+using OneOf.Chaining.Examples.Application.Services;
 using OneOf.Chaining.Examples.Domain.Entities;
 using OneOf.Chaining.Examples.Domain.Outcomes;
 using OneOf.Chaining.Examples.Domain.ValueObjects;
@@ -10,7 +12,12 @@ public record CollectedWeatherDataDetails(
     Guid RequestId,
     string? Location, 
     CollectedWeatherData? Data,
-    Guid? LocationId = null)
+    Guid? LocationId,
+    bool? SubmittedToModeling,
+    bool? ModelingDataRejected,
+    bool? ModelingDataAccepted,
+    bool? SubmissionCompleted,
+    bool? ModelUpdated)
 {
     public static Task<OneOf<CollectedWeatherDataDetails, Failure>> FromRequest(string location, CollectedWeatherDataModel data)
     {
@@ -27,11 +34,57 @@ public record CollectedWeatherDataDetails(
         }
         var collectedDataEntity = new CollectedWeatherData(points);
 
-        return Task.FromResult(OneOf<CollectedWeatherDataDetails, Failure>.FromT0(new CollectedWeatherDataDetails(Guid.NewGuid(), location, collectedDataEntity)));
+        return Task.FromResult(OneOf<CollectedWeatherDataDetails, Failure>.FromT0(
+            new CollectedWeatherDataDetails(
+                Guid.NewGuid(), 
+                location, 
+                collectedDataEntity, 
+                null, 
+                null, 
+                null, 
+                null, 
+                null, 
+                null)));
     }
 
     public static Task<OneOf<CollectedWeatherDataDetails, Failure>> FromModelingEvent(ModelingEvent @event)
     {
-        return Task.FromResult(OneOf<CollectedWeatherDataDetails, Failure>.FromT0(new CollectedWeatherDataDetails(@event.RequestId, null, null, null)));
+        return Task.FromResult(OneOf<CollectedWeatherDataDetails, Failure>.FromT0(
+            new CollectedWeatherDataDetails(
+                @event.RequestId, 
+                null, 
+                null, 
+                null, 
+                null, 
+                null, 
+                null, 
+                null, 
+                null)));
+    }
+
+    public CollectedWeatherDataDetails WithUpdatedState(IEnumerable<CollectedWeatherDataDetailsStatusUpdate> statusEvents)
+    {
+        var statusEventList = statusEvents.OrderBy(s => s.TimeStamp).ToList();
+
+        var submittedToModeling = statusEventList.LastOrDefault(r => r.EventName == EventNames.SubmittedToModeling.ToString())
+            is not null;
+
+        var modelingDataRejected = statusEventList.LastOrDefault(r => r.EventName == EventNames.ModelingDataRejected.ToString())
+            is not null;
+
+        var modelingDataAccepted = statusEventList.LastOrDefault(r => r.EventName == EventNames.ModelingDataAccepted.ToString())
+            is not null;
+
+        var modelUpdated = statusEventList.LastOrDefault(r => r.EventName == EventNames.ModelUpdated.ToString())
+            is not null;
+
+        return this with
+        {
+            SubmittedToModeling = submittedToModeling,
+            ModelingDataRejected = modelingDataRejected,
+            ModelingDataAccepted = modelingDataAccepted,
+            ModelUpdated = modelUpdated
+        };
     }
 }
+

@@ -30,8 +30,7 @@ app.MapGet("/weatherforecast/{region}/{date}", (
     [FromServices]IGetWeatherReportRequestHandler handler) 
     => CreateResponseFor(() => handler.Handle(region, date)));
 
-
-
+#region
 app.MapPost("/collectedweatherdata/{location}", (
     [FromRoute] string location,
     [FromBody] CollectedWeatherDataModel data,
@@ -39,8 +38,7 @@ app.MapPost("/collectedweatherdata/{location}", (
     [FromServices] IWeatherDataValidator weatherDataValidator, 
     [FromServices] ILocationManager locationManager) 
     => CreateResponseFor(() => handler.Handle(location, data, weatherDataValidator, locationManager)));
-
-
+#endregion
 
 static async Task<IResult> CreateResponseFor<TSuccess>(Func<Task<OneOf<TSuccess, Failure>>> handleRequestFunc)
 {
@@ -48,9 +46,9 @@ static async Task<IResult> CreateResponseFor<TSuccess>(Func<Task<OneOf<TSuccess,
     return response.Match(
         success => Results.Ok(success),
         failure => failure.Match(
-            invalidRequest =>
+            invalidRequestFailure =>
             {
-                var problem = new ValidationProblemDetails(invalidRequest.ValidationErrors);
+                var problem = new ValidationProblemDetails(invalidRequestFailure.ValidationErrors);
                 return Results.BadRequest(problem);
             },
             unsupportedRegionFailure => Results.UnprocessableEntity(unsupportedRegionFailure.ToProblemDetails())

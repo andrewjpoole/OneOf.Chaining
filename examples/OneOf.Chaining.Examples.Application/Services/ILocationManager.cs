@@ -3,7 +3,7 @@ using OneOf.Chaining.Examples.Domain.Outcomes;
 
 namespace OneOf.Chaining.Examples.Application.Services;
 
-public interface IWeatherModelingService
+public interface ILocationManager
 {
-    Task<OneOf<CollectedWeatherDataDetails, Failure>> Submit(CollectedWeatherDataDetails details);
+    Task<OneOf<CollectedWeatherDataDetails, Failure>> Locate(CollectedWeatherDataDetails details);
 }

@@ -28,7 +28,7 @@ public class AsynchronousMethodChainingTests
             return s;
         }
 
-        Task <OneOf<StateStore, Error>> Create() => Task.FromResult((OneOf<StateStore, Error>)new StateStore());
+        Task<OneOf<StateStore, Error>> Create() => Task.FromResult((OneOf<StateStore, Error>)new StateStore());
 
         var result = await Create()
             .Then(s => Job1(s))

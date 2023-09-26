@@ -87,7 +87,7 @@ public class CollectedWeatherDataOrchestrator :
     {
         var result = await CollectedWeatherDataDetails.FromModelingEvent(@event)
             .Then(weatherDataStore.Fetch)
-            .Then(weatherDataStore.UpdateStatusModelingSucceeded)
+            .Then(weatherDataStore.UpdateStatusAcceptedIntoModeling)
             .Then(contributorPaymentService.CommitPendingPayment)
             .Then(weatherDataStore.CompleteSubmission);
 
@@ -117,4 +117,11 @@ public class CollectedWeatherDataOrchestrator :
             throw new Exception($"Something went wrong while handling {nameof(ModelUpdatedEvent)}");
     }
 }
+
+/*
+ * 1. roughly explain the new flow
+ * 2. add in the event handlers
+ * 3. shared details object + using records
+ * 4. benefits of all flows being in one place
+ */
 
