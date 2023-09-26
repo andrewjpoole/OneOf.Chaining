@@ -17,6 +17,10 @@
 	</PackageReleaseNotes>
 	<Version>1.0.0</Version>
 	<RepositoryType>github</RepositoryType>
+	<PackageLicenseExpression>MIT</PackageLicenseExpression>
+	<IncludeSymbols>true</IncludeSymbols>
+	<EmbedAllSources>true</EmbedAllSources>
+	<GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
 
 
