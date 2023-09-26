@@ -50,16 +50,3 @@ public class WeatherDataPersistence : IWeatherDataPersistence
         throw new NotImplementedException();
     }
 }
-
-public interface IWeatherDataPersistence
-{
-    Task<OneOf<CollectedWeatherDataDetails, Failure>> InsertOrFetch(CollectedWeatherDataDetails details);
-    Task<OneOf<CollectedWeatherDataDetails, Failure>> Fetch(CollectedWeatherDataDetails details);
-    Task<OneOf<CollectedWeatherDataDetails, Failure>> CompleteSubmission(CollectedWeatherDataDetails details);
-
-    // Status updates
-    Task<OneOf<CollectedWeatherDataDetails, Failure>> UpdateStatusModelingSucceeded(CollectedWeatherDataDetails details);
-    Task<OneOf<CollectedWeatherDataDetails, Failure>> UpdateStatusDataRejected(CollectedWeatherDataDetails details);
-    Task<OneOf<CollectedWeatherDataDetails, Failure>> UpdateStatusModelUpdated(CollectedWeatherDataDetails details);
-    Task<OneOf<CollectedWeatherDataDetails, Failure>> UpdateStatusSubmittedToModeling(CollectedWeatherDataDetails details);
-}

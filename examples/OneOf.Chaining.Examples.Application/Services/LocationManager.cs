@@ -19,8 +19,3 @@ public class LocationManager : ILocationManager
         //return OneOf<WeatherReport, Failure>.FromT1(new InvalidWeatherDataFailure(details.Location));
     }
 }
-
-public interface ILocationManager
-{
-    Task<OneOf<CollectedWeatherDataDetails, Failure>> Locate(CollectedWeatherDataDetails details);
-}

@@ -1,6 +1,4 @@
-﻿using OneOf;
-using OneOf.Types;
-using System.Linq.Expressions;
+﻿using OneOf.Types;
 // ReSharper disable InconsistentNaming
 
 namespace OneOf.Chaining;
@@ -18,7 +16,7 @@ public static class AsynchronousMethodChainingExtensions
     /// <param name="nextJob">A Func containing the next piece of work in the chain.</param>
     /// <returns></returns>
     public static async Task<OneOf<T, TFailure>> Then<T, TFailure>(
-        this Task<OneOf<T, TFailure>> currentJobResult, 
+        this Task<OneOf<T, TFailure>> currentJobResult,
         Func<T, Task<OneOf<T, TFailure>>> nextJob)
     {
         // Inspect result of (probably already awaited) currentJobResult, if its a TFailure return it...
@@ -44,9 +42,9 @@ public static class AsynchronousMethodChainingExtensions
     /// <param name="onFailure">A func which will be invoked if nextJob returns a TFailure, which receives said TFailure and can determine what TFailure is returned down the chain.</param>
     /// <returns></returns>
     public static async Task<OneOf<T, TFailure>> Then<T, TFailure>(
-        this Task<OneOf<T, TFailure>> currentJobResult, 
-        Func<T, Task<OneOf<T, TFailure>>> nextJob, 
-        Func<T, TFailure, Task<OneOf<T,TFailure>>> onFailure)
+        this Task<OneOf<T, TFailure>> currentJobResult,
+        Func<T, Task<OneOf<T, TFailure>>> nextJob,
+        Func<T, TFailure, Task<OneOf<T, TFailure>>> onFailure)
     {
         // Inspect result of (probably already awaited) currentJobResult, if its a TFailure return it...
         var TOrFailure = await currentJobResult;
@@ -60,7 +58,7 @@ public static class AsynchronousMethodChainingExtensions
         // If next job returned a T (Success) return it...
         if (result.IsT0)
             return result;
-        
+
         // Otherwise invoke onFailure and return the final resulting TFailure...
         var finalFailure = await onFailure(currentT, result.AsT1);
         return finalFailure;
@@ -80,9 +78,9 @@ public static class AsynchronousMethodChainingExtensions
     /// <param name="onFailure">An Action which will be invoked if nextJob fails, before TFailure is returned.</param>
     /// <returns></returns>
     public static async Task<OneOf<T, TFailure>> IfThen<T, TFailure>(
-        this Task<OneOf<T, TFailure>> currentJobResult, 
+        this Task<OneOf<T, TFailure>> currentJobResult,
         Func<T, bool> condition,
-        Func<T, Task<OneOf<T, TFailure>>> nextJob, 
+        Func<T, Task<OneOf<T, TFailure>>> nextJob,
         Func<T, TFailure, Task<OneOf<T, TFailure>>>? onFailure = null)
     {
         // Inspect result of (probably already awaited) currentJobResult, if its a TFailure return it...

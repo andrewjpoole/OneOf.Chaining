@@ -8,8 +8,7 @@ using OneOf.Chaining.Examples.Application.Services;
 
 namespace OneOf.Chaining.Examples.Infrastructure.MessageBus;
 
-public class ServiceBusEventListener<T> : IHostedService, IDisposable
-    where T : class
+public class ServiceBusEventListener<T> : IHostedService, IDisposable where T : class
 {
     private readonly ILogger<ServiceBusEventListener<T>> logger;
     private readonly IEventHandler<T> eventHandler;

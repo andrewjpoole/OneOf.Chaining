@@ -12,21 +12,21 @@ public class CollectedWeatherDataOrchestrator :
     IEventHandler<DataRejectedEvent>,
     IEventHandler<ModelUpdatedEvent>
 {
-    private readonly IWeatherDataPersistence weatherDataStore;
-    private readonly IWeatherModelingService weatherModelingService;
-    private readonly IContributorPaymentService contributorPaymentService;
-    private readonly INotificationService notificationService;
+    private readonly IWeatherDataPersistence _weatherDataStore;
+    private readonly WeatherModelingService _weatherModelingService;
+    private readonly IContributorPaymentService _contributorPaymentService;
+    private readonly INotificationService _notificationService;
 
     public CollectedWeatherDataOrchestrator(
         IWeatherDataPersistence weatherDataStore, 
-        IWeatherModelingService weatherModelingService,
+        WeatherModelingService weatherModelingService,
         IContributorPaymentService contributorPaymentService,
         INotificationService notificationService)
     {
-        this.weatherDataStore = weatherDataStore;
-        this.weatherModelingService = weatherModelingService;
-        this.contributorPaymentService = contributorPaymentService;
-        this.notificationService = notificationService;
+        _weatherDataStore = weatherDataStore;
+        _weatherModelingService = weatherModelingService;
+        _contributorPaymentService = contributorPaymentService;
+        _notificationService = notificationService;
     }
 
     public Task<OneOf<Success, Failure>> Handle(string weatherDataLocation, CollectedWeatherDataModel weatherDataModel, 
@@ -36,60 +36,21 @@ public class CollectedWeatherDataOrchestrator :
         return CollectedWeatherDataDetails.FromRequest(weatherDataLocation, weatherDataModel)
             .Then(weatherDataValidator.Validate)
             .Then(locationManager.Locate)
-            .Then(weatherDataStore.InsertOrFetch)
-            .Then(contributorPaymentService.CreatePendingPayment)
-            .Then(weatherModelingService.Submit, // Calls async external service
-                onFailure: (details, _) => contributorPaymentService.RevokePendingPayment(details)) 
-            .Then(weatherDataStore.UpdateStatusSubmittedToModeling)
+            .Then(_weatherDataStore.InsertOrFetch)
+            .Then(_contributorPaymentService.CreatePendingPayment)
+            .Then(_weatherModelingService.Submit, // Calls async external service
+                onFailure: (details, _) => _contributorPaymentService.RevokePendingPayment(details)) 
+            .Then(_weatherDataStore.UpdateStatusSubmittedToModeling)
             .ToResult();
     }
-    /*
-     
     
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-     */
     public async Task HandleEvent(DataAcceptedEvent @event)
     {
         var result = await CollectedWeatherDataDetails.FromModelingEvent(@event)
-            .Then(weatherDataStore.Fetch)
-            .Then(weatherDataStore.UpdateStatusModelingSucceeded)
-            .Then(contributorPaymentService.CommitPendingPayment)
-            .Then(weatherDataStore.CompleteSubmission);
+            .Then(_weatherDataStore.Fetch)
+            .Then(_weatherDataStore.UpdateStatusModelingSucceeded)
+            .Then(_contributorPaymentService.CommitPendingPayment)
+            .Then(_weatherDataStore.CompleteSubmission);
 
         if (result.IsT1)
             throw new Exception($"Something went wrong while handling {nameof(DataAcceptedEvent)}");
@@ -98,9 +59,9 @@ public class CollectedWeatherDataOrchestrator :
     public async Task HandleEvent(DataRejectedEvent @event)
     {
         var result = await CollectedWeatherDataDetails.FromModelingEvent(@event)
-            .Then(weatherDataStore.Fetch)
-            .Then(weatherDataStore.UpdateStatusDataRejected)
-            .Then(contributorPaymentService.RevokePendingPayment);
+            .Then(_weatherDataStore.Fetch)
+            .Then(_weatherDataStore.UpdateStatusDataRejected)
+            .Then(_contributorPaymentService.RevokePendingPayment);
 
         if (result.IsT1)
             throw new Exception($"Something went wrong while handling {nameof(DataRejectedEvent)}");
@@ -109,12 +70,11 @@ public class CollectedWeatherDataOrchestrator :
     public async Task HandleEvent(ModelUpdatedEvent @event)
     {
         var result = await CollectedWeatherDataDetails.FromModelingEvent(@event)
-            .Then(weatherDataStore.Fetch)
-            .Then(weatherDataStore.UpdateStatusModelUpdated)
-            .Then(notificationService.NotifyModelUpdated);
+            .Then(_weatherDataStore.Fetch)
+            .Then(_weatherDataStore.UpdateStatusModelUpdated)
+            .Then(_notificationService.NotifyModelUpdated);
 
         if (result.IsT1)
             throw new Exception($"Something went wrong while handling {nameof(ModelUpdatedEvent)}");
     }
 }
-

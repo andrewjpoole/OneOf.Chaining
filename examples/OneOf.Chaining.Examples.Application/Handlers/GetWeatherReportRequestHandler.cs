@@ -17,52 +17,6 @@ public class GetWeatherReportRequestHandler : IGetWeatherReportRequestHandler
         this.weatherForecastGenerator = weatherForecastGenerator;
     }
 
-    /*
-    public async Task<OneOf<WeatherReport, Failure>> Handle(string requestedRegion, DateTime requestedDate)
-    {
-        var isValidRequest = await regionValidator.Validate(requestedRegion);
-        if (!isValidRequest)
-            return new UnsupportedRegionFailure();
-
-        var dateCheckPassed = await dateChecker.CheckDate(requestedDate);
-        if (!dateCheckPassed)
-            return new InvalidRequest();
-
-        var cacheCheckResult = CheckCache(requestedRegion, requestedDate);
-        if (cacheCheckResult.Hit)
-            return cacheCheckResult.Data;
-        else
-            return weatherForecastGenerator.Generate(requestedRegion, requestedDate);
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    */
-    
     public async Task<OneOf<WeatherReport, Failure>> Handle(string requestedRegion, DateTime requestedDate)
     {
         return await WeatherReport.Create(requestedRegion, requestedDate)

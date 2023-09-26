@@ -1,5 +1,4 @@
 ﻿using OneOf.Chaining.Examples.Application.Orchestration;
-using OneOf.Chaining.Examples.Domain;
 using OneOf.Chaining.Examples.Domain.Outcomes;
 
 namespace OneOf.Chaining.Examples.Application.Services;
@@ -14,9 +13,4 @@ public class WeatherDataValidator : IWeatherDataValidator
 
         //return OneOf<WeatherReport, Failure>.FromT1(new InvalidWeatherDataFailure(details.Location));
     }
-}
-
-public interface IWeatherDataValidator
-{
-    Task<OneOf<CollectedWeatherDataDetails, Failure>> Validate(CollectedWeatherDataDetails details);
 }

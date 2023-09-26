@@ -18,29 +18,21 @@ builder.Services
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-
 app.UseHttpsRedirection();
 
-
-
 app.MapGet("/weatherforecast/{region}/{date}", (
-    [FromRoute]string region, 
-    [FromRoute]DateTime date, 
-    [FromServices]IGetWeatherReportRequestHandler handler) 
+    [FromRoute] string region,
+    [FromRoute] DateTime date,
+    [FromServices] IGetWeatherReportRequestHandler handler)
     => CreateResponseFor(() => handler.Handle(region, date)));
-
-
 
 app.MapPost("/collectedweatherdata/{location}", (
     [FromRoute] string location,
     [FromBody] CollectedWeatherDataModel data,
     [FromServices] IPostWeatherReportDataHandler handler,
-    [FromServices] IWeatherDataValidator weatherDataValidator, 
-    [FromServices] ILocationManager locationManager) 
+    [FromServices] IWeatherDataValidator weatherDataValidator,
+    [FromServices] ILocationManager locationManager)
     => CreateResponseFor(() => handler.Handle(location, data, weatherDataValidator, locationManager)));
-
-
 
 static async Task<IResult> CreateResponseFor<TSuccess>(Func<Task<OneOf<TSuccess, Failure>>> handleRequestFunc)
 {

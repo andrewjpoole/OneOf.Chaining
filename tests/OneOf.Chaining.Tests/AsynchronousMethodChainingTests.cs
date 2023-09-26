@@ -1,7 +1,9 @@
 using OneOf.Types;
+using System.Diagnostics.CodeAnalysis;
 
 namespace OneOf.Chaining.Tests;
 
+[ExcludeFromCodeCoverage]
 public class AsynchronousMethodChainingTests
 {
     [Test]
@@ -28,7 +30,7 @@ public class AsynchronousMethodChainingTests
             return s;
         }
 
-        Task <OneOf<StateStore, Error>> Create() => Task.FromResult((OneOf<StateStore, Error>)new StateStore());
+        Task<OneOf<StateStore, Error>> Create() => Task.FromResult((OneOf<StateStore, Error>)new StateStore());
 
         var result = await Create()
             .Then(s => Job1(s))
@@ -154,11 +156,3 @@ public class AsynchronousMethodChainingTests
         Assert.That(result.IsT1, Is.True);
     }
 }
-
-public class StateStore
-{
-    public bool Flag1 { get; set; }
-    public bool Flag2 { get; set; }
-    public bool Flag3 { get; set; }
-}
-
