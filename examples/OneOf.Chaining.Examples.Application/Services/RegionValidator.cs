@@ -7,18 +7,18 @@ public class RegionValidator : IRegionValidator
 {
     private List<string> supportedRegions = new() { "taunton", "bristol", "london" };
 
-    public async Task<OneOf<WeatherReport, Failure>> ValidateRegion(WeatherReport report)
+    public async Task<OneOf<WeatherReportDetails, Failure>> ValidateRegion(WeatherReportDetails report)
     {
 
         if (supportedRegions.Contains(report.RequestedRegion.ToLower()))
             return report;
 
-        return OneOf<WeatherReport, Failure>.FromT1(new UnsupportedRegionFailure(report.RequestedRegion));
+        return OneOf<WeatherReportDetails, Failure>.FromT1(new UnsupportedRegionFailure(report.RequestedRegion));
     }
 }
 
 public interface IRegionValidator
 {
-    Task<OneOf<WeatherReport, Failure>> ValidateRegion(WeatherReport report);
+    Task<OneOf<WeatherReportDetails, Failure>> ValidateRegion(WeatherReportDetails report);
 }
 

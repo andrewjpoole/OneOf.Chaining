@@ -10,7 +10,7 @@ public class WeatherForecastGenerator : IWeatherForecastGenerator
         "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
     };
 
-    public async Task<OneOf<WeatherReport, Failure>> Generate(WeatherReport report)
+    public async Task<OneOf<WeatherReportDetails, Failure>> Generate(WeatherReportDetails report)
     {
         report.Set(summaries[Random.Shared.Next(summaries.Length)], Random.Shared.Next(-20, 55));
         return report;
@@ -19,5 +19,5 @@ public class WeatherForecastGenerator : IWeatherForecastGenerator
 
 public interface IWeatherForecastGenerator
 {
-    Task<OneOf<WeatherReport, Failure>> Generate(WeatherReport report);
+    Task<OneOf<WeatherReportDetails, Failure>> Generate(WeatherReportDetails report);
 }

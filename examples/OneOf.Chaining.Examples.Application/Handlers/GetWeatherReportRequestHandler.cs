@@ -10,7 +10,10 @@ public class GetWeatherReportRequestHandler : IGetWeatherReportRequestHandler
     private readonly IDateChecker dateChecker;
     private readonly IWeatherForecastGenerator weatherForecastGenerator;
 
-    public GetWeatherReportRequestHandler(IRegionValidator regionValidator, IDateChecker dateChecker, IWeatherForecastGenerator weatherForecastGenerator)
+    public GetWeatherReportRequestHandler(
+        IRegionValidator regionValidator, 
+        IDateChecker dateChecker, 
+        IWeatherForecastGenerator weatherForecastGenerator)
     {
         this.regionValidator = regionValidator;
         this.dateChecker = dateChecker;
@@ -19,7 +22,8 @@ public class GetWeatherReportRequestHandler : IGetWeatherReportRequestHandler
 
     /*
     // Example of what we didn't want...
-    public async Task<OneOf<WeatherReport, Failure>> Handle(string requestedRegion, DateTime requestedDate)
+    public async Task<OneOf<WeatherReport, Failure>> Handle(
+        string requestedRegion, DateTime requestedDate)
     {
         var isValidRequest = await regionValidator.Validate(requestedRegion);
         if (!isValidRequest)
@@ -64,24 +68,38 @@ public class GetWeatherReportRequestHandler : IGetWeatherReportRequestHandler
 
     */
     
-    public async Task<OneOf<WeatherReport, Failure>> Handle(string requestedRegion, DateTime requestedDate)
+    public async Task<OneOf<WeatherReportDetails, Failure>> Handle(
+        string requestedRegion, DateTime requestedDate)
     {
-        return await WeatherReport.Create(requestedRegion, requestedDate)
+        return await WeatherReportDetails.Create(requestedRegion, requestedDate)
             .Then(regionValidator.ValidateRegion)
             .Then(dateChecker.CheckDate)
             .Then(weatherForecastGenerator.Generate);
     }
+/*
 
-    public async Task<OneOf<WeatherReport, Failure>> CheckCache(WeatherReport report)
+
+
+
+
+
+
+
+
+
+
+*/
+    public async Task<OneOf<WeatherReportDetails, Failure>> CheckCache(
+        WeatherReportDetails details)
     {
-        // Check and populate from a cache etc...
+        // Check and populate from a local in-memory cache etc...
         // Methods from anywhere can be chained as long as they have the correct signature...
 
         await Task.Delay(50);
-        return report;
+        details.Set("summary from cache", 32);
+        details.PopulatedFromCache = true;
         
-        //cacheId = "sdfsdf";
-        //return Task.FromResult(OneOf<WeatherReport, Failure>.FromT0(report));
+        return details;
     }
 
 
@@ -90,10 +108,9 @@ public class GetWeatherReportRequestHandler : IGetWeatherReportRequestHandler
      * 1. details object passing through on success (containing state)
      * 2. show actual report arg (remove MethodGrouping)
      * 3. add an additional arg
-     * 4. add an out arg
-     * 5. mention: navigation, debugging, testing
-     * 6. go through Then extension method code
-     * 7. IfThen .IfThen(report => report.PopulatedFromCache is false, 
-     * 8. onFailure
+     * 4. mention: navigation, debugging, testing
+     * 5. go through Then extension method code
+     * 6. IfThen .IfThen(report => report.PopulatedFromCache is false, 
+     * 7. onFailure
      */
 }

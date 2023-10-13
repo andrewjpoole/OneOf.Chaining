@@ -5,13 +5,13 @@ namespace OneOf.Chaining.Examples.Application.Services;
 
 public class DateChecker : IDateChecker
 {
-    public async Task<OneOf<WeatherReport, Failure>> CheckDate(WeatherReport report)
+    public async Task<OneOf<WeatherReportDetails, Failure>> CheckDate(WeatherReportDetails report)
     {
         if (report.RequestedDate < DateTime.Today)
-            return OneOf<WeatherReport, Failure>.FromT1(new InvalidRequestFailure(new Dictionary<string, string[]>{ { "Date", new [] {"Date must be in next two weeks" } } }));
+            return OneOf<WeatherReportDetails, Failure>.FromT1(new InvalidRequestFailure(new Dictionary<string, string[]>{ { "Date", new [] {"Date must be in next two weeks" } } }));
 
         if (report.RequestedDate > DateTime.Today.AddDays(14))
-            return OneOf<WeatherReport, Failure>.FromT1(new InvalidRequestFailure(new Dictionary<string, string[]> { { "Date", new[] { "Date must be in next two weeks" } } }));
+            return OneOf<WeatherReportDetails, Failure>.FromT1(new InvalidRequestFailure(new Dictionary<string, string[]> { { "Date", new[] { "Date must be in next two weeks" } } }));
 
         return report;
     }
@@ -19,5 +19,5 @@ public class DateChecker : IDateChecker
 
 public interface IDateChecker
 {
-    Task<OneOf<WeatherReport, Failure>> CheckDate(WeatherReport report);
+    Task<OneOf<WeatherReportDetails, Failure>> CheckDate(WeatherReportDetails report);
 }

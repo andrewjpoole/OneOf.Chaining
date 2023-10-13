@@ -24,8 +24,8 @@ public static class WebApplicationBuilderExtensions
             .AddSingleton<IContributorPaymentService, ContributorPaymentService>()
             .AddSingleton<INotificationService, NotificationService>();
 
-        services.AddHostedServiceBusEventListener<DataAcceptedEvent, CollectedWeatherDataOrchestrator>();
-        services.AddHostedServiceBusEventListener<DataRejectedEvent, CollectedWeatherDataOrchestrator>();
+        services.AddHostedServiceBusEventListener<ModelingDataAcceptedEvent, CollectedWeatherDataOrchestrator>();
+        services.AddHostedServiceBusEventListener<ModelingDataRejectedEvent, CollectedWeatherDataOrchestrator>();
         services.AddHostedServiceBusEventListener<ModelUpdatedEvent, CollectedWeatherDataOrchestrator>();
 
         

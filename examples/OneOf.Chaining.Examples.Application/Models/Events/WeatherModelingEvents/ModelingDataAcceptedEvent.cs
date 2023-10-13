@@ -1,3 +1,3 @@
 ﻿namespace OneOf.Chaining.Examples.Application.Models.Events.WeatherModelingEvents;
 
-public record DataAcceptedEvent(Guid RequestId) : ModelingEvent(RequestId);
+public record ModelingDataAcceptedEvent(Guid RequestId) : ModelingEvent(RequestId);

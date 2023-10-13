@@ -4,6 +4,10 @@
 
 namespace OneOf.Chaining;
 
+/// <summary>
+/// A set of extension methods which allow chaining of methods in a nice fluent, english sentance like chain or flow.
+/// In order to be chained a method need only return a Task Of OneOf TSuccess or TFailure
+/// </summary>
 public static class AsynchronousMethodChainingExtensions
 {
     /// <summary>

@@ -8,8 +8,8 @@ namespace OneOf.Chaining.Examples.Application.Orchestration;
 
 public class CollectedWeatherDataOrchestrator : 
     IPostWeatherReportDataHandler,
-    IEventHandler<DataAcceptedEvent>, 
-    IEventHandler<DataRejectedEvent>,
+    IEventHandler<ModelingDataAcceptedEvent>, 
+    IEventHandler<ModelingDataRejectedEvent>,
     IEventHandler<ModelUpdatedEvent>
 {
     private readonly IWeatherDataPersistence weatherDataStore;
@@ -19,7 +19,8 @@ public class CollectedWeatherDataOrchestrator :
     public CollectedWeatherDataOrchestrator(
         IWeatherDataPersistence weatherDataStore, 
         IWeatherModelingService weatherModelingService,
-        INotificationService notificationService)
+        INotificationService notificationService) 
+        //IContributorPaymentService contributorPaymentService)
     {
         this.weatherDataStore = weatherDataStore;
         this.weatherModelingService = weatherModelingService;
@@ -34,7 +35,7 @@ public class CollectedWeatherDataOrchestrator :
             .Then(weatherDataValidator.Validate)
             .Then(locationManager.Locate)
             .Then(weatherDataStore.InsertOrFetch)
-            .Then(weatherModelingService.Submit) // Calls async external service
+            .Then(weatherModelingService.Submit) // Calls async external service 
             .Then(weatherDataStore.UpdateStatusSubmittedToModeling)
             .ToResult();
     }
@@ -78,7 +79,7 @@ public class CollectedWeatherDataOrchestrator :
 
 
      */
-    public async Task HandleEvent(DataAcceptedEvent @event)
+    public async Task HandleEvent(ModelingDataAcceptedEvent @event)
     {
         var result = await CollectedWeatherDataDetails.FromModelingEvent(@event)
             .Then(weatherDataStore.Fetch)
@@ -86,17 +87,17 @@ public class CollectedWeatherDataOrchestrator :
             .Then(weatherDataStore.CompleteSubmission);
 
         if (result.IsT1)
-            throw new Exception($"Something went wrong while handling {nameof(DataAcceptedEvent)}");
+            throw new Exception($"Something went wrong while handling {nameof(ModelingDataAcceptedEvent)}");
     }
 
-    public async Task HandleEvent(DataRejectedEvent @event)
+    public async Task HandleEvent(ModelingDataRejectedEvent @event)
     {
         var result = await CollectedWeatherDataDetails.FromModelingEvent(@event)
             .Then(weatherDataStore.Fetch)
             .Then(weatherDataStore.UpdateStatusDataRejected);
 
         if (result.IsT1)
-            throw new Exception($"Something went wrong while handling {nameof(DataRejectedEvent)}");
+            throw new Exception($"Something went wrong while handling {nameof(ModelingDataRejectedEvent)}");
     }
 
     public async Task HandleEvent(ModelUpdatedEvent @event)
@@ -115,6 +116,6 @@ public class CollectedWeatherDataOrchestrator :
  * 1. roughly explain the new flow
  * 2. add in the event handlers
  * 3. shared details object + using records
- * 4. Add in the payment contributor service
- * 5. benefits of all flows being in one place
+ * 4. Add in IContributorPaymentService
+ * 5. benefits of all flows being in one place - intent is the star of the show!
  */
