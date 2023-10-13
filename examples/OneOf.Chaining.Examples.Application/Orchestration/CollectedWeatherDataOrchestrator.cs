@@ -14,18 +14,15 @@ public class CollectedWeatherDataOrchestrator :
 {
     private readonly IWeatherDataPersistence weatherDataStore;
     private readonly IWeatherModelingService weatherModelingService;
-    private readonly IContributorPaymentService contributorPaymentService;
     private readonly INotificationService notificationService;
 
     public CollectedWeatherDataOrchestrator(
         IWeatherDataPersistence weatherDataStore, 
         IWeatherModelingService weatherModelingService,
-        IContributorPaymentService contributorPaymentService,
         INotificationService notificationService)
     {
         this.weatherDataStore = weatherDataStore;
         this.weatherModelingService = weatherModelingService;
-        this.contributorPaymentService = contributorPaymentService;
         this.notificationService = notificationService;
     }
 
@@ -37,9 +34,7 @@ public class CollectedWeatherDataOrchestrator :
             .Then(weatherDataValidator.Validate)
             .Then(locationManager.Locate)
             .Then(weatherDataStore.InsertOrFetch)
-            .Then(contributorPaymentService.CreatePendingPayment)
-            .Then(weatherModelingService.Submit, // Calls async external service
-                onFailure: (details, _) => contributorPaymentService.RevokePendingPayment(details)) 
+            .Then(weatherModelingService.Submit) // Calls async external service
             .Then(weatherDataStore.UpdateStatusSubmittedToModeling)
             .ToResult();
     }
@@ -88,7 +83,6 @@ public class CollectedWeatherDataOrchestrator :
         var result = await CollectedWeatherDataDetails.FromModelingEvent(@event)
             .Then(weatherDataStore.Fetch)
             .Then(weatherDataStore.UpdateStatusAcceptedIntoModeling)
-            .Then(contributorPaymentService.CommitPendingPayment)
             .Then(weatherDataStore.CompleteSubmission);
 
         if (result.IsT1)
@@ -99,8 +93,7 @@ public class CollectedWeatherDataOrchestrator :
     {
         var result = await CollectedWeatherDataDetails.FromModelingEvent(@event)
             .Then(weatherDataStore.Fetch)
-            .Then(weatherDataStore.UpdateStatusDataRejected)
-            .Then(contributorPaymentService.RevokePendingPayment);
+            .Then(weatherDataStore.UpdateStatusDataRejected);
 
         if (result.IsT1)
             throw new Exception($"Something went wrong while handling {nameof(DataRejectedEvent)}");
@@ -122,6 +115,6 @@ public class CollectedWeatherDataOrchestrator :
  * 1. roughly explain the new flow
  * 2. add in the event handlers
  * 3. shared details object + using records
- * 4. benefits of all flows being in one place
+ * 4. Add in the payment contributor service
+ * 5. benefits of all flows being in one place
  */
-

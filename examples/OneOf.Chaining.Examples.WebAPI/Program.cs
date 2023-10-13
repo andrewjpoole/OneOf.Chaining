@@ -22,8 +22,6 @@ var app = builder.Build();
 
 app.UseHttpsRedirection();
 
-
-
 app.MapGet("/weatherforecast/{region}/{date}", (
     [FromRoute]string region, 
     [FromRoute]DateTime date, 
@@ -46,11 +44,7 @@ static async Task<IResult> CreateResponseFor<TSuccess>(Func<Task<OneOf<TSuccess,
     return response.Match(
         success => Results.Ok(success),
         failure => failure.Match(
-            invalidRequestFailure =>
-            {
-                var problem = new ValidationProblemDetails(invalidRequestFailure.ValidationErrors);
-                return Results.BadRequest(problem);
-            },
+            invalidRequestFailure => Results.BadRequest(new ValidationProblemDetails(invalidRequestFailure.ValidationErrors)),
             unsupportedRegionFailure => Results.UnprocessableEntity(unsupportedRegionFailure.ToProblemDetails())
         ));
 }

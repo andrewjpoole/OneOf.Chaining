@@ -69,9 +69,7 @@ public class GetWeatherReportRequestHandler : IGetWeatherReportRequestHandler
         return await WeatherReport.Create(requestedRegion, requestedDate)
             .Then(regionValidator.ValidateRegion)
             .Then(dateChecker.CheckDate)
-            .Then(CheckCache)
-            .IfThen(report => report.PopulatedFromCache is false, 
-                weatherForecastGenerator.Generate);
+            .Then(weatherForecastGenerator.Generate);
     }
 
     public async Task<OneOf<WeatherReport, Failure>> CheckCache(WeatherReport report)
