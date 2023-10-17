@@ -8,10 +8,12 @@ public class DateChecker : IDateChecker
     public async Task<OneOf<WeatherReportDetails, Failure>> CheckDate(WeatherReportDetails report)
     {
         if (report.RequestedDate < DateTime.Today)
-            return OneOf<WeatherReportDetails, Failure>.FromT1(new InvalidRequestFailure(new Dictionary<string, string[]>{ { "Date", new [] {"Date must be in next two weeks" } } }));
+            return OneOf<WeatherReportDetails, Failure>.FromT1(
+                new InvalidRequestFailure(new Dictionary<string, string[]>{ { "Date", new [] {"Date must be in next two weeks" } } }));
 
         if (report.RequestedDate > DateTime.Today.AddDays(14))
-            return OneOf<WeatherReportDetails, Failure>.FromT1(new InvalidRequestFailure(new Dictionary<string, string[]> { { "Date", new[] { "Date must be in next two weeks" } } }));
+            return OneOf<WeatherReportDetails, Failure>.FromT1(
+                new InvalidRequestFailure(new Dictionary<string, string[]> { { "Date", new[] { "Date must be in next two weeks" } } }));
 
         return report;
     }
