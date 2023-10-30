@@ -1,4 +1,8 @@
+using System.Collections;
 using OneOf.Types;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq.Expressions;
+using System.Runtime.CompilerServices;
 
 namespace OneOf.Chaining.Tests;
 
@@ -158,21 +162,68 @@ public class AsynchronousMethodChainingTests
     public async Task ThenWaitForAll_should_execute_all_tasks_before_returning()
     {
         var state = Task.FromResult((OneOf<StateStore, Error>)new StateStore());
-
-        var resultOfJob2 = state
-            .Then(Job2);
-
-        var result3 = await state
+        
+        var result = await state
             .Then(Job1)
-            .ThenWaitForAll(Job2, state => Job3(state).Then(Job4))
+            .ThenWaitForAll(null, Job2, s => Job3(s).Then(Job4))
             .Then(Job5);
 
-        Assert.That(result3.AsT0.Flag1, Is.True);
-        Assert.That(result3.AsT0.Flag2, Is.True);
-        Assert.That(result3.AsT0.Flag3, Is.True);
-        Assert.That(result3.AsT0.Flag4, Is.True);
-        Assert.That(result3.AsT0.Flag5, Is.True);
+        Assert.That(result.AsT0.Flag1, Is.True);
+        Assert.That(result.AsT0.Flag2, Is.True);
+        Assert.That(result.AsT0.Flag3, Is.True);
+        Assert.That(result.AsT0.Flag4, Is.True);
+        Assert.That(result.AsT0.Flag5, Is.True);
+    }
 
+    [Test]
+    public async Task ThenWaitForAll_should_execute_all_tasks_before_returning_Error_if_one_of_the_tasks_returns_an_error()
+    {
+        async Task<OneOf<StateStore, Error>> Job2WhichReturnsError(StateStore s)
+        {
+            await Task.Delay(100);
+            return new Error();
+        }
+
+        var job4Completed = false;
+        async Task<OneOf<StateStore, Error>> Job4WhichSetsFlag(StateStore s)
+        {
+            await Task.Delay(500);
+            job4Completed = true;
+            return s;
+        }
+
+        var state = Task.FromResult((OneOf<StateStore, Error>)new StateStore());
+        
+        var result = await state
+            .Then(Job1)
+            .ThenWaitForAll(null, Job2WhichReturnsError, s => Job3(s).Then(Job4WhichSetsFlag))
+            .Then(Job5);
+
+        Assert.That(result.IsT1);
+        Assert.That(job4Completed);
+    }
+
+    [Test]
+    public async Task ThenWaitForAll_should_execute_all_tasks_and_use_a_supplied_merging_strategy()
+    {
+        var state = Task.FromResult((OneOf<StateStore, Error>)new StateStore());
+
+        // todo think of more meaningful strategy...
+        OneOf<StateStore, Error> TaskResultMergingStrategy(IEnumerable<OneOf<StateStore, Error>> results)
+        {
+            return results.First();
+        }
+
+        var result = await state
+            .Then(Job1)
+            .ThenWaitForAll((Func<IEnumerable<OneOf<StateStore, Error>>, OneOf<StateStore, Error>>?)TaskResultMergingStrategy, Job2, s => Job3(s).Then(Job4))
+            .Then(Job5);
+
+        Assert.That(result.AsT0.Flag1, Is.True);
+        Assert.That(result.AsT0.Flag2, Is.True);
+        Assert.That(result.AsT0.Flag3, Is.True);
+        Assert.That(result.AsT0.Flag4, Is.True);
+        Assert.That(result.AsT0.Flag5, Is.True);
     }
 
     [Test]
@@ -198,6 +249,32 @@ public class AsynchronousMethodChainingTests
         Assert.That(result.AsT0.Flag4, Is.True, "Flag4 should be true");
 
     }
+
+    [Test]
+    public async Task ThenWaitForFirst_should_return_Error_after_first_task_completes_if_it_returns_an_error()
+    {
+        async Task<OneOf<StateStore, Error>> Job2WhichReturnsError(StateStore s)
+        {
+            await Task.Delay(100);
+            return new Error();
+        }
+
+        async Task<OneOf<StateStore, Error>> ReallyLongRunningJob3(StateStore s)
+        {
+            await Task.Delay(3000);
+            s.Flag3 = true;
+            return s;
+        }
+
+        var state = Task.FromResult((OneOf<StateStore, Error>)new StateStore());
+
+        var result = await state
+            .Then(Job1)
+            .ThenWaitForFirst(Job2WhichReturnsError, ReallyLongRunningJob3)
+            .Then(Job4);
+
+        Assert.That(result.IsT1);
+    }
 }
 
 public class StateStore
@@ -208,4 +285,3 @@ public class StateStore
     public bool Flag4 { get; set; }
     public bool Flag5 { get; set; }
 }
-
