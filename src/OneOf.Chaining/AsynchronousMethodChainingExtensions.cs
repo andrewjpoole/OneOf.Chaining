@@ -134,17 +134,19 @@ public static class AsynchronousMethodChainingExtensions
     /// <summary>
     /// Extension method which enables method chaining. This method accepts an array of tasks which will be executed in parallel. This method will return once all tasks have completed.
     /// Please note, the T is passed into each task by ref, so care must be taken around any mutation of any state on the T, i.e. a property should probably not be mutated by more than one task.
-    /// This method cannot know how to merge the result of each task. A strategy can be provided. The default behaviour is to return the first TFailure if any tasks return a TFailure, otherwise return the original TOrFailure passed into this method.
+    /// This method cannot know how to merge the result of each task. A strategy can be provided. Another overload of this method provides a default merging strategy.
     /// See the other Then extension methods for an explanation of how to chain a flow of tasks. 
     /// </summary>
     /// <typeparam name="T">Represents success, also likely contains any state needed to perform any operations and possibly store any results from processing in the chain. This will be passed to all tasks.</typeparam>
     /// <typeparam name="TFailure">Represents a failure at some point in the chain.</typeparam>
     /// <param name="currentJobResult">The resulting Task of the previous link in the chain.</param>
-    /// <param name="resultMergingStrategy"></param>
+    /// <param name="resultMergingStrategy">A func which is passed the original T and a list of results from the Tasks, it should decide how to merge the results once they have all returned i.e. what to return from this method..</param>
     /// <param name="tasks">A list a tasks to execute in parallel, </param>
     /// <returns></returns>
     public static async Task<OneOf<T, TFailure>> ThenWaitForAll<T, TFailure>(
-        this Task<OneOf<T, TFailure>> currentJobResult, Func<List<OneOf<T, TFailure>>, OneOf<T, TFailure>>? resultMergingStrategy = null, params Func<T, Task<OneOf<T, TFailure>>>[] tasks)
+        this Task<OneOf<T, TFailure>> currentJobResult, 
+        Func<T, List<OneOf<T, TFailure>>, OneOf<T, TFailure>> resultMergingStrategy, 
+        params Func<T, Task<OneOf<T, TFailure>>>[] tasks)
     {
         // Inspect result of (probably already awaited) currentJobResult, if its a TFailure return it...
         var TOrFailure = await currentJobResult;
@@ -159,30 +161,47 @@ public static class AsynchronousMethodChainingExtensions
         {
             taskResults.Add(await task(TOrFailure.AsT0));
         }));
-
-        // Provide default merging strategy if not provided, return the first TFailure, otherwise return original TOrFailure.
-        resultMergingStrategy ??= results =>
-        {
-            return results.Any(x => x.IsT1) ? results.First(x => x.IsT1) : TOrFailure;
-        };
-
-        var finalResult = resultMergingStrategy(taskResults);
+        
+        var finalResult = resultMergingStrategy(TOrFailure.AsT0, taskResults);
 
         return finalResult;
     }
 
     /// <summary>
-    /// Extension method which enables method chaining. This method accepts an array of tasks which will be executed in parallel. This method will return immediately once the first task has completed.
-    /// The result (T or TFailure) of the first completed task will be returned. The results of all other tasks are ignored.
+    /// Extension method which enables method chaining. This method accepts an array of tasks which will be executed in parallel. This method will return once all tasks have completed.
     /// Please note, the T is passed into each task by ref, so care must be taken around any mutation of any state on the T, i.e. a property should probably not be mutated by more than one task.
-    /// See the other Then extension methods for an explanation of how to chain a flow of tasks.
+    /// This method cannot know how to merge the result of each task. A strategy can be provided using an overload of this method. The default behaviour is to return the first TFailure if any tasks return a TFailure, otherwise return the original TOrFailure passed into this method.
+    /// See the other Then extension methods for an explanation of how to chain a flow of tasks. 
     /// </summary>
     /// <typeparam name="T">Represents success, also likely contains any state needed to perform any operations and possibly store any results from processing in the chain. This will be passed to all tasks.</typeparam>
     /// <typeparam name="TFailure">Represents a failure at some point in the chain.</typeparam>
     /// <param name="currentJobResult">The resulting Task of the previous link in the chain.</param>
     /// <param name="tasks">A list a tasks to execute in parallel, </param>
     /// <returns></returns>
-    public static async Task<OneOf<T, TFailure>> ThenWaitForFirst<T, TFailure>(
+    public static async Task<OneOf<T, TFailure>> ThenWaitForAll<T, TFailure>(
+        this Task<OneOf<T, TFailure>> currentJobResult, 
+        params Func<T, Task<OneOf<T, TFailure>>>[] tasks)
+    {
+        OneOf<T, TFailure> DefaultResultMergingStrategy(T inputT, List<OneOf<T, TFailure>> results)
+        {
+            return results.Any(x => x.IsT1) ? results.First(x => x.IsT1) : inputT;
+        }
+
+        return await currentJobResult.ThenWaitForAll(DefaultResultMergingStrategy, tasks);
+    }
+
+    /// <summary>
+        /// Extension method which enables method chaining. This method accepts an array of tasks which will be executed in parallel. This method will return immediately once the first task has completed.
+        /// The result (T or TFailure) of the first completed task will be returned. The results of all other tasks are ignored.
+        /// Please note, the T is passed into each task by ref, so care must be taken around any mutation of any state on the T, i.e. a property should probably not be mutated by more than one task.
+        /// See the other Then extension methods for an explanation of how to chain a flow of tasks.
+        /// </summary>
+        /// <typeparam name="T">Represents success, also likely contains any state needed to perform any operations and possibly store any results from processing in the chain. This will be passed to all tasks.</typeparam>
+        /// <typeparam name="TFailure">Represents a failure at some point in the chain.</typeparam>
+        /// <param name="currentJobResult">The resulting Task of the previous link in the chain.</param>
+        /// <param name="tasks">A list a tasks to execute in parallel, </param>
+        /// <returns></returns>
+        public static async Task<OneOf<T, TFailure>> ThenWaitForFirst<T, TFailure>(
         this Task<OneOf<T, TFailure>> currentJobResult, params Func<T, Task<OneOf<T, TFailure>>>[] tasks)
     {
         // Inspect result of (probably already awaited) currentJobResult, if its a TFailure return it...
