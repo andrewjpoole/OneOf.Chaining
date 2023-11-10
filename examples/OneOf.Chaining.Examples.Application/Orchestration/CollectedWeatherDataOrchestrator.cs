@@ -27,7 +27,7 @@ public class CollectedWeatherDataOrchestrator :
         this.notificationService = notificationService;
     }
 
-    public Task<OneOf<Success, Failure>> Handle(string weatherDataLocation, CollectedWeatherDataModel weatherDataModel, 
+    public Task<OneOf<WeatherDataCollectionResponse, Failure>> Handle(string weatherDataLocation, CollectedWeatherDataModel weatherDataModel, 
         IWeatherDataValidator weatherDataValidator, 
         ILocationManager locationManager)
     {
@@ -37,7 +37,7 @@ public class CollectedWeatherDataOrchestrator :
             .Then(weatherDataStore.InsertOrFetch)
             .Then(weatherModelingService.Submit) // Calls async external service 
             .Then(weatherDataStore.UpdateStatusSubmittedToModeling)
-            .ToResult();
+            .ToResult(details => details.ToResponse());
     }
     /*
      

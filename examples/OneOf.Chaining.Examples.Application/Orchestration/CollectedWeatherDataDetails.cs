@@ -5,6 +5,7 @@ using OneOf.Chaining.Examples.Application.Services;
 using OneOf.Chaining.Examples.Domain.Entities;
 using OneOf.Chaining.Examples.Domain.Outcomes;
 using OneOf.Chaining.Examples.Domain.ValueObjects;
+using OneOf.Types;
 
 namespace OneOf.Chaining.Examples.Application.Orchestration;
 
@@ -14,6 +15,7 @@ public record CollectedWeatherDataDetails(
     CollectedWeatherData? Data,
     Guid? LocationId,
     bool? SubmittedToModeling,
+    Guid? WeatherModelingServiceSubmissionId,
     bool? ModelingDataRejected,
     bool? ModelingDataAccepted,
     bool? SubmissionCompleted,
@@ -27,10 +29,10 @@ public record CollectedWeatherDataDetails(
             points.Add(new CollectedWeatherDataPoint(
                 Guid.NewGuid(), 
                 collectedReading.time, 
-                new WindSpeed(collectedReading.WindSpeedsInMetersPerSecond), 
+                new WindSpeed(collectedReading.WindSpeedInMetersPerSecond), 
                 new WindDirection(collectedReading.WindDirection), 
-                new Temperature(collectedReading.TemperatureReadingsInDegreesCelcius),
-                new Humidity(collectedReading.HumidityReadingsInPercent)));
+                new Temperature(collectedReading.TemperatureReadingInDegreesCelcius),
+                new Humidity(collectedReading.HumidityReadingInPercent)));
         }
         var collectedDataEntity = new CollectedWeatherData(points);
 
@@ -42,6 +44,7 @@ public record CollectedWeatherDataDetails(
                 null, 
                 null, 
                 null, 
+                null,
                 null, 
                 null, 
                 null)));
@@ -57,6 +60,7 @@ public record CollectedWeatherDataDetails(
                 null, 
                 null, 
                 null, 
+                null,
                 null, 
                 null, 
                 null)));
@@ -85,6 +89,11 @@ public record CollectedWeatherDataDetails(
             ModelingDataAccepted = modelingDataAccepted,
             ModelUpdated = modelUpdated
         };
+    }
+
+    public WeatherDataCollectionResponse ToResponse()
+    {
+        return new WeatherDataCollectionResponse(RequestId);
     }
 }
 

@@ -13,7 +13,7 @@ public class WeatherDataPersistence : IWeatherDataPersistence
     public async Task<OneOf<CollectedWeatherDataDetails, Failure>> InsertOrFetch(CollectedWeatherDataDetails details)
     {
         if (!collectedWeatherRepository.ContainsKey(details.RequestId))
-            collectedWeatherRepository.Add(Guid.NewGuid(), details);
+            collectedWeatherRepository.Add(details.RequestId, details);
 
         return OneOf<CollectedWeatherDataDetails, Failure>.FromT0(collectedWeatherRepository[details.RequestId]);
     }

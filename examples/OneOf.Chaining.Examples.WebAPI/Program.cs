@@ -5,16 +5,28 @@ using OneOf.Chaining.Examples.Application.Models.Requests;
 using OneOf.Chaining.Examples.Application.Orchestration;
 using OneOf.Chaining.Examples.Application.Services;
 using OneOf.Chaining.Examples.Domain.Outcomes;
+using OneOf.Chaining.Examples.Infrastructure.ApiClients.WeatherModelingSystem;
+using OneOf.Chaining.Examples.Infrastructure.LocationManager;
+using OneOf.Chaining.Examples.Infrastructure.Notifications;
+using OneOf.Chaining.Examples.Infrastructure.Persistence;
 using OneOf.Chaining.Examples.WebAPI;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container
+
 builder.Services
     .AddSingleton<IGetWeatherReportRequestHandler, GetWeatherReportRequestHandler>()
+    .AddSingleton<IPostWeatherReportDataHandler, CollectedWeatherDataOrchestrator>()
     .AddSingleton<IRegionValidator, RegionValidator>()
     .AddSingleton<IDateChecker, DateChecker>()
-    .AddSingleton<IWeatherForecastGenerator, WeatherForecastGenerator>();
+    .AddSingleton<IWeatherForecastGenerator, WeatherForecastGenerator>()
+    .AddSingleton<IWeatherDataPersistence, WeatherDataPersistence>()
+    .AddSingleton<INotificationService, NotificationService>()
+    .AddSingleton<IWeatherDataValidator, WeatherDataValidator>()
+    .AddSingleton<ILocationManager, LocationManager>()
+    .AddWeatherModelingService(builder.Configuration.GetSection(WeatherModelingServiceOptions.ConfigSectionName).Get<WeatherModelingServiceOptions>())
+    .AddSingleton(typeof(IRefitClientWrapper<>), typeof(RefitClientWrapper<>));
 
 var app = builder.Build();
 
@@ -22,14 +34,14 @@ var app = builder.Build();
 
 app.UseHttpsRedirection();
 
-app.MapGet("/weatherforecast/{region}/{date}", (
+app.MapGet("/v1/weather-forecast/{region}/{date}", (
     [FromRoute]string region, 
     [FromRoute]DateTime date, 
     [FromServices]IGetWeatherReportRequestHandler handler) 
     => CreateResponseFor(() => handler.Handle(region, date)));
 
 #region
-app.MapPost("/collectedweatherdata/{location}", (
+app.MapPost("/v1/collected-weather-data/{location}", (
     [FromRoute] string location,
     [FromBody] CollectedWeatherDataModel data,
     [FromServices] IPostWeatherReportDataHandler handler,
@@ -45,8 +57,11 @@ static async Task<IResult> CreateResponseFor<TSuccess>(Func<Task<OneOf<TSuccess,
         success => Results.Ok(success),
         failure => failure.Match(
             invalidRequestFailure => Results.BadRequest(new ValidationProblemDetails(invalidRequestFailure.ValidationErrors)),
-            unsupportedRegionFailure => Results.UnprocessableEntity(unsupportedRegionFailure.ToProblemDetails())
+            unsupportedRegionFailure => Results.UnprocessableEntity(unsupportedRegionFailure.ToProblemDetails()),
+            weatherModelingServiceRejectionFailure => Results.UnprocessableEntity(weatherModelingServiceRejectionFailure.Message)
         ));
 }
 
 app.Run();
+
+public partial class Program { }

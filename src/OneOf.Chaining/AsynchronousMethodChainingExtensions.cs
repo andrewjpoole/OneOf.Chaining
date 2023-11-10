@@ -113,21 +113,23 @@ public static class AsynchronousMethodChainingExtensions
         var finalFailure = await onFailure(currentT, result.AsT1);
         return finalFailure;
     }
-
+    
     /// <summary>
-    /// Extension method which enables the result of a chain of methods to be finally converted to a OneOf.Success if all operations in the chain have been successful.<br/>
+    /// Extension method which enables the result of a chain of methods to be finally converted to a new type (TResult) if all operations in the chain have been successful.<br/>
     /// If at any point in the chain, the result of the currentJob Task has contained a TFailure, then that TFailure which has been passed down through the chain is finally returned.
     /// </summary>
     /// <typeparam name="T">Represents success, also likely contains any state needed to perform any operations and possibly store any results from processing in the chain.</typeparam>
     /// <typeparam name="TFailure">Represents a failure at some point in the chain.</typeparam>
+    /// <typeparam name="TResult">The new type to convert the T into.</typeparam>
     /// <param name="currentJobResult">The resulting Task of the previous link in the chain.</param>
+    /// <param name="convertToResult">A func provided to do the conversion.</param>
     /// <returns></returns>
-    public static async Task<OneOf<Success, TFailure>> ToResult<T, TFailure>(this Task<OneOf<T, TFailure>> currentJobResult)
+    public static async Task<OneOf<TResult, TFailure>> ToResult<TResult, T, TFailure>(this Task<OneOf<T, TFailure>> currentJobResult, Func<T, TResult> convertToResult)
     {
         // Await final job, return cascaded TFailure or new Success.
         var TOrFailure = await currentJobResult;
-        return TOrFailure.Match<OneOf<Success, TFailure>>(
-            _ => new Success(),
+        return TOrFailure.Match<OneOf<TResult, TFailure>>(
+            _ => convertToResult(TOrFailure.AsT0),
             failure => failure);
     }
 

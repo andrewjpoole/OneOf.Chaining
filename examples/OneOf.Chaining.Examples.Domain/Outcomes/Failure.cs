@@ -1,11 +1,12 @@
 namespace OneOf.Chaining.Examples.Domain.Outcomes;
 
-public class Failure : OneOfBase<InvalidRequestFailure, UnsupportedRegionFailure>
+public class Failure : OneOfBase<InvalidRequestFailure, UnsupportedRegionFailure, WeatherModelingServiceRejectionFailure>
 {
-    public Failure(OneOf<InvalidRequestFailure, UnsupportedRegionFailure> input) : base(input)
+    public Failure(OneOf<InvalidRequestFailure, UnsupportedRegionFailure, WeatherModelingServiceRejectionFailure> input) : base(input)
     {
     }
 
-    public static implicit operator Failure(InvalidRequestFailure _) => new(_);
-    public static implicit operator Failure(UnsupportedRegionFailure _) => new(_);
+    public static implicit operator Failure(InvalidRequestFailure failure) => new(failure);
+    public static implicit operator Failure(UnsupportedRegionFailure failure) => new(failure);
+    public static implicit operator Failure(WeatherModelingServiceRejectionFailure failure) => new(failure);
 }

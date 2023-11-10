@@ -1,4 +1,5 @@
-﻿using OneOf.Chaining.Examples.Application.Services;
+﻿using OneOf.Chaining.Examples.Application.Models;
+using OneOf.Chaining.Examples.Application.Services;
 using OneOf.Chaining.Examples.Domain;
 using OneOf.Chaining.Examples.Domain.Outcomes;
 
@@ -68,13 +69,14 @@ public class GetWeatherReportRequestHandler : IGetWeatherReportRequestHandler
 
     */
     
-    public async Task<OneOf<WeatherReportDetails, Failure>> Handle(
+    public async Task<OneOf<WeatherReportResponse, Failure>> Handle(
         string requestedRegion, DateTime requestedDate)
     {
         return await WeatherReportDetails.Create(requestedRegion, requestedDate)
             .Then(regionValidator.ValidateRegion)
             .Then(dateChecker.CheckDate)
-            .Then(weatherForecastGenerator.Generate);
+            .Then(weatherForecastGenerator.Generate)
+            .ToResult(WeatherReportResponse.FromDetails);
     }
 /*
 

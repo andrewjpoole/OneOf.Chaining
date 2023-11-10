@@ -2,10 +2,10 @@
 
 public record CollectedWeatherDataPointModel(
     DateTimeOffset time,
-    decimal WindSpeedsInMetersPerSecond,
+    decimal WindSpeedInMetersPerSecond,
     string WindDirection,
-    decimal TemperatureReadingsInDegreesCelcius,
-    decimal HumidityReadingsInPercent
+    decimal TemperatureReadingInDegreesCelcius,
+    decimal HumidityReadingInPercent
     );
 
 public record CollectedWeatherDataModel(List<CollectedWeatherDataPointModel> Points);

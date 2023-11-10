@@ -143,7 +143,7 @@ public class AsynchronousMethodChainingTests
     {
         Task<OneOf<StateStore, Error>> Create() => Task.FromResult((OneOf<StateStore, Error>)new StateStore());
 
-        var result = await Create().ToResult();
+        var result = await Create().ToResult(store => new Success());
 
         Assert.That(result.IsT0, Is.True);
     }
@@ -153,7 +153,7 @@ public class AsynchronousMethodChainingTests
     {
         Task<OneOf<StateStore, Error>> Create() => Task.FromResult((OneOf<StateStore, Error>)new Error());
 
-        var result = await Create().ToResult();
+        var result = await Create().ToResult(store => new Success());
 
         Assert.That(result.IsT1, Is.True);
     }
@@ -208,7 +208,7 @@ public class AsynchronousMethodChainingTests
     {
         var state = Task.FromResult((OneOf<StateStore, Error>)new StateStore());
 
-        // todo think of more meaningful strategy...
+        // Should probably think of more meaningful strategy to test...
         OneOf<StateStore, Error> TaskResultMergingStrategy(IEnumerable<OneOf<StateStore, Error>> results)
         {
             return results.First();

@@ -10,7 +10,7 @@ public record Temperature
 
     public Temperature(decimal temperature)
     {
-        Rules.DecimalRules.CheckIsWithinRange(temperature, () => temperature, Unit, -30.0M, 50.0M);
+        Rules.DecimalRules.CheckIsWithinRange(temperature, () => temperature, Unit, 50.0M, -30.0M);
 
         Value = temperature;
     }
