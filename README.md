@@ -35,3 +35,5 @@ public async Task<OneOf<WeatherReport, Failure>> Handle(string requestedRegion, 
 ```
 
 For an explanation, see my blog post [here](https://forkinthecode.net/2023/07/19/async-method-chaining.html) or on [ClearBank's Medium publication here](https://medium.com/clearbank/async-method-chaining-in-c-8f15d162bcee)
+
+Now includes `ThenWaitForAll()` and `ThenWaitForFirst()` methods which accept a list of tasks to be executed in parallel.

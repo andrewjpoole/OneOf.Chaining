@@ -1,8 +1,4 @@
-using System.Collections;
 using OneOf.Types;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq.Expressions;
-using System.Runtime.CompilerServices;
 
 namespace OneOf.Chaining.Tests;
 
@@ -165,7 +161,7 @@ public class AsynchronousMethodChainingTests
         
         var result = await state
             .Then(Job1)
-            .ThenWaitForAll(null, Job2, s => Job3(s).Then(Job4))
+            .ThenWaitForAll(Job2, s => Job3(s).Then(Job4))
             .Then(Job5);
 
         Assert.That(result.AsT0.Flag1, Is.True);
@@ -196,7 +192,7 @@ public class AsynchronousMethodChainingTests
         
         var result = await state
             .Then(Job1)
-            .ThenWaitForAll(null, Job2WhichReturnsError, s => Job3(s).Then(Job4WhichSetsFlag))
+            .ThenWaitForAll(Job2WhichReturnsError, s => Job3(s).Then(Job4WhichSetsFlag))
             .Then(Job5);
 
         Assert.That(result.IsT1);
@@ -208,15 +204,15 @@ public class AsynchronousMethodChainingTests
     {
         var state = Task.FromResult((OneOf<StateStore, Error>)new StateStore());
 
-        // Should probably think of more meaningful strategy to test...
-        OneOf<StateStore, Error> TaskResultMergingStrategy(IEnumerable<OneOf<StateStore, Error>> results)
+        // todo think of more meaningful strategy to test...
+        OneOf<StateStore, Error> TaskResultMergingStrategy(StateStore input, IEnumerable<OneOf<StateStore, Error>> results)
         {
             return results.First();
         }
 
         var result = await state
             .Then(Job1)
-            .ThenWaitForAll((Func<IEnumerable<OneOf<StateStore, Error>>, OneOf<StateStore, Error>>?)TaskResultMergingStrategy, Job2, s => Job3(s).Then(Job4))
+            .ThenWaitForAll(TaskResultMergingStrategy, Job2, s => Job3(s).Then(Job4))
             .Then(Job5);
 
         Assert.That(result.AsT0.Flag1, Is.True);

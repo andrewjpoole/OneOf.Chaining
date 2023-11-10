@@ -21,6 +21,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OneOf.Chaining.Examples.Dom
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OneOf.Chaining.Examples.Infrastructure", "examples\OneOf.Chaining.Examples.Infrastructure\OneOf.Chaining.Examples.Infrastructure.csproj", "{93FBD47D-7F64-4C26-9D85-D3B16577D2E5}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{DF6DE078-2912-425C-A140-8E8C5E9EBEC4}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OneOf.Chaining.Examples.EventListener", "examples\OneOf.Chaining.Examples.EventListener\OneOf.Chaining.Examples.EventListener.csproj", "{550050F0-4876-4F1C-BE3F-422A17ABCE0C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OneOf.Chaining.Examples.Tests", "examples\OneOf.Chaining.Examples.ComponentTests\OneOf.Chaining.Examples.Tests.csproj", "{3C006C17-C71C-46F2-8EF5-084474706D47}"
