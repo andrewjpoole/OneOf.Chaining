@@ -1,6 +1,19 @@
-var builder = WebApplication.CreateBuilder(args);
-var app = builder.Build();
+using OneOf.Chaining.Examples.EventListener.Extensions;
 
-app.MapGet("/", () => "Hello World!");
+namespace OneOf.Chaining.Examples.EventListener;
 
-app.Run();
+public class Program
+{
+    public static async Task Main(string[] args)
+    {
+        var builder = WebApplication.CreateBuilder(args);
+
+        builder.ConfigureServices();
+
+        var app = builder.Build();
+
+        app.MapGet("/", () => "Hello World!");
+
+        await app.RunAsync();
+    }
+}

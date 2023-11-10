@@ -26,6 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\OneOf.Chaining.Examples.EventListener\OneOf.Chaining.Examples.EventListener.csproj" />
     <ProjectReference Include="..\OneOf.Chaining.Examples.WebAPI\OneOf.Chaining.Examples.WebAPI.csproj" />
   </ItemGroup>
 

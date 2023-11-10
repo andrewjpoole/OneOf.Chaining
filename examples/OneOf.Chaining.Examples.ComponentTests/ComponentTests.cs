@@ -1,12 +1,9 @@
-using System;
 using System.Net;
-using System.Text.Json;
 using FluentAssertions;
 using OneOf.Chaining.Examples.Application.Models;
 using OneOf.Chaining.Examples.Application.Models.Events.WeatherModelingEvents;
 using OneOf.Chaining.Examples.Application.Models.Requests;
 using OneOf.Chaining.Examples.Application.Services;
-using OneOf.Chaining.Examples.Domain;
 using OneOf.Chaining.Examples.Tests.Framework;
 
 namespace OneOf.Chaining.Examples.Tests;
@@ -24,15 +21,14 @@ public class ComponentTests : IClassFixture<ComponentTestFixture>
     [Fact]
     public void Return_a_WeatherReport_given_valid_region_and_date()
     {
-        Given.UsingThe(testFixture)
-            .WeHaveAWeatherReportRequest("bristol", DateTime.Now, out var apiRequest)
+        var (given, when, then) = testFixture.SetupHelpers();
+
+        given.WeHaveAWeatherReportRequest("bristol", DateTime.Now, out var apiRequest)
             .And.TheServerIsStarted();
 
-        When.UsingThe(testFixture)
-            .WeSendTheMessageToTheApi(apiRequest, out var response);
+        when.WeSendTheMessageToTheApi(apiRequest, out var response);
 
-        Then.UsingThe(testFixture)
-            .TheResponseCodeShouldBe(response, HttpStatusCode.OK)
+        then.TheResponseCodeShouldBe(response, HttpStatusCode.OK)
             .And.TheBodyShouldNotBeEmpty<WeatherReportResponse>(response, x => x.Summary.Should().NotBeEmpty());
     }
 
@@ -46,7 +42,7 @@ public class ComponentTests : IClassFixture<ComponentTestFixture>
             .And.TheModelingServiceSubmitEndpointWillReturn(HttpStatusCode.Accepted, out var submissionId)
             .And.TheServerIsStarted();
         
-        when // in phase 1
+        when // in phase 1 (initial API request)
             .And.WeWrapTheCollectedWeatherDataInAnHttpRequestMessage(collectedWeatherModel, "testLocation", out var httpRequest)
             .And.WeSendTheMessageToTheApi(httpRequest, out var response);
 
@@ -56,13 +52,13 @@ public class ComponentTests : IClassFixture<ComponentTestFixture>
             .And.TheResponseCodeShouldBe(response, HttpStatusCode.OK)
             .And.TheBodyShouldNotBeEmpty<WeatherDataCollectionResponse>(response, x =>x.RequestId.Should().NotBeEmpty());
         
-        when // in phase 2
+        when // in phase 2 (1st ASB message back from modeling service)
             .AMessageAppears(message: new ModelingDataAcceptedEvent(submissionId));
 
-        //then
-        //    .TheEventShouldHaveBeenPersisted(EventNames.ModelingDataAccepted);
+        then
+            .TheEventShouldHaveBeenPersisted(EventNames.ModelingDataAccepted);
 
-        //when // in phase 3
+        //when // in phase 3 (2nd ASB message back from modeling service)
         //    .AMessageAppears(message: new ModelUpdatedEvent(submissionId));
 
         //then

@@ -14,8 +14,6 @@ public class When
     {
         this.fixture = fixture;
     }
-
-    public static When UsingThe(ComponentTestFixture fixture) => new(fixture);
     public When And => this;
 
     public When WeSendTheMessageToTheApi(HttpRequestMessage httpRequest, out HttpResponseMessage response)
@@ -40,9 +38,10 @@ public class When
         return this;
     }
 
-    public When AMessageAppears(ModelingEvent message)
+    public When AMessageAppears<T>(T message) where T : class
     {
-        // todo: present message to EventListener's appropriate TestableServiceBusListener
+        var processor = fixture.EventListenerFactory.GetTestableServiceBusProcessor<T>();
+        processor.SendMessage(message).GetAwaiter().GetResult();
 
         return this;
     }

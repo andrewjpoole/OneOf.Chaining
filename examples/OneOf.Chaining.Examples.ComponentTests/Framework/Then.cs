@@ -17,7 +17,6 @@ public class Then
         this.fixture = fixture;
     }
 
-    public static Then UsingThe(ComponentTestFixture fixture) => new(fixture);
     public Then And => this;
 
     public Then AndAssert(Action assertion)
@@ -82,7 +81,7 @@ public class Then
 
     public Then TheEventShouldHaveBeenPersisted(EventNames eventName)
     {
-        // todo: mock backend of persistence service
+        fixture.RealWeatherDataPersistence?.CollectedWeatherDataStatusUpdateRepository.Should().Contain(update => update.EventName == eventName.ToString());
 
         return this;
     }

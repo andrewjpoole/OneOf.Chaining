@@ -14,8 +14,6 @@ public class Given
     {
         this.fixture = fixture;
     }
-
-    public static Given UsingThe(ComponentTestFixture fixture) => new(fixture);
     public Given And => this;
 
     public Given WeHaveAWeatherReportRequest(string region, DateTime date, out HttpRequestMessage request)
@@ -39,6 +37,7 @@ public class Given
     public Given TheServerIsStarted()
     {
         fixture.ApiFactory.Start();
+        fixture.EventListenerFactory.Start();
         return this;
     }
 

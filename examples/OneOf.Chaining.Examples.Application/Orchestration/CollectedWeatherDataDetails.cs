@@ -54,12 +54,12 @@ public record CollectedWeatherDataDetails(
     {
         return Task.FromResult(OneOf<CollectedWeatherDataDetails, Failure>.FromT0(
             new CollectedWeatherDataDetails(
-                @event.RequestId, 
+                Guid.Empty, 
                 null, 
                 null, 
                 null, 
                 null, 
-                null, 
+                @event.ModelingSubmissionId, 
                 null,
                 null, 
                 null, 

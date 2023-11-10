@@ -7,36 +7,34 @@ namespace OneOf.Chaining.Examples.Infrastructure.Persistence;
 
 public class WeatherDataPersistence : IWeatherDataPersistence
 {
-    private readonly Dictionary<Guid, CollectedWeatherDataDetails> collectedWeatherRepository = new();
-    private readonly List<CollectedWeatherDataDetailsStatusUpdate> collectedWeatherDataStatusUpdateRepository = new();
+    public readonly Dictionary<Guid, CollectedWeatherDataDetails> CollectedWeatherRepository = new();
+    public readonly List<CollectedWeatherDataDetailsStatusUpdate> CollectedWeatherDataStatusUpdateRepository = new();
     
     public async Task<OneOf<CollectedWeatherDataDetails, Failure>> InsertOrFetch(CollectedWeatherDataDetails details)
     {
-        if (!collectedWeatherRepository.ContainsKey(details.RequestId))
-            collectedWeatherRepository.Add(details.RequestId, details);
+        if (!CollectedWeatherRepository.ContainsKey(details.RequestId))
+            CollectedWeatherRepository.Add(details.RequestId, details);
 
-        return OneOf<CollectedWeatherDataDetails, Failure>.FromT0(collectedWeatherRepository[details.RequestId]);
+        return OneOf<CollectedWeatherDataDetails, Failure>.FromT0(CollectedWeatherRepository[details.RequestId]);
     }
 
     public async Task<OneOf<CollectedWeatherDataDetails, Failure>> Fetch(CollectedWeatherDataDetails details)
     {
-        if (collectedWeatherRepository.ContainsKey(details.RequestId))
-        {
-            var statusEvents = collectedWeatherDataStatusUpdateRepository.Where(
-                e => e.CollectedWeatherDetailsRequestId == details.RequestId);
+        // todo: fix this - the submissionId is null in the main repo!!! maybe convert to aggregateRoot now?
+        var foundCollectedWeatherDetails = CollectedWeatherRepository.First(pair => pair.Value.WeatherModelingServiceSubmissionId == details.WeatherModelingServiceSubmissionId).Value;
+       
+        var statusEvents = CollectedWeatherDataStatusUpdateRepository.Where(
+            e => e.CollectedWeatherDetailsRequestId == details.RequestId);
 
-            var fetchedDetails = collectedWeatherRepository[details.RequestId]
-                .WithUpdatedState(statusEvents);
+        return OneOf<CollectedWeatherDataDetails, Failure>.FromT0(foundCollectedWeatherDetails.WithUpdatedState(statusEvents)); // just return the persisted details object
+        
 
-            return OneOf<CollectedWeatherDataDetails, Failure>.FromT0(fetchedDetails); // just return the persisted details object
-        }
-
-        throw new Exception($"Could find WeatherData with {details.RequestId} in store."); // this is exceptional
+        //throw new Exception($"Couldn't find WeatherData with {details.RequestId} in store."); // this is exceptional
     }
 
     public Task<OneOf<CollectedWeatherDataDetails, Failure>> CompleteSubmission(CollectedWeatherDataDetails details)
     {
-        collectedWeatherDataStatusUpdateRepository.Add(
+        CollectedWeatherDataStatusUpdateRepository.Add(
             new CollectedWeatherDataDetailsStatusUpdate(
                 details.RequestId,
                 DateTime.Now,
@@ -47,7 +45,7 @@ public class WeatherDataPersistence : IWeatherDataPersistence
 
     public Task<OneOf<CollectedWeatherDataDetails, Failure>> UpdateStatusAcceptedIntoModeling(CollectedWeatherDataDetails details)
     {
-        collectedWeatherDataStatusUpdateRepository.Add(
+        CollectedWeatherDataStatusUpdateRepository.Add(
             new CollectedWeatherDataDetailsStatusUpdate(
                 details.RequestId, 
                 DateTime.Now, 
@@ -58,7 +56,7 @@ public class WeatherDataPersistence : IWeatherDataPersistence
 
     public Task<OneOf<CollectedWeatherDataDetails, Failure>> UpdateStatusDataRejected(CollectedWeatherDataDetails details)
     {
-        collectedWeatherDataStatusUpdateRepository.Add(
+        CollectedWeatherDataStatusUpdateRepository.Add(
             new CollectedWeatherDataDetailsStatusUpdate(
                 details.RequestId,
                 DateTime.Now,
@@ -69,7 +67,7 @@ public class WeatherDataPersistence : IWeatherDataPersistence
 
     public Task<OneOf<CollectedWeatherDataDetails, Failure>> UpdateStatusModelUpdated(CollectedWeatherDataDetails details)
     {
-        collectedWeatherDataStatusUpdateRepository.Add(
+        CollectedWeatherDataStatusUpdateRepository.Add(
             new CollectedWeatherDataDetailsStatusUpdate(
                 details.RequestId,
                 DateTime.Now,
@@ -80,11 +78,11 @@ public class WeatherDataPersistence : IWeatherDataPersistence
     
     public Task<OneOf<CollectedWeatherDataDetails, Failure>> UpdateStatusSubmittedToModeling(CollectedWeatherDataDetails details)
     {
-        collectedWeatherDataStatusUpdateRepository.Add(
+        CollectedWeatherDataStatusUpdateRepository.Add(
             new CollectedWeatherDataDetailsStatusUpdate(
                 details.RequestId,
                 DateTime.Now,
-                EventNames.SubmittedToModeling.ToString()));
+                EventNames.SubmittedToModeling.ToString(), details.WeatherModelingServiceSubmissionId!.ToString()));
 
         return Task.FromResult<OneOf<CollectedWeatherDataDetails, Failure>>(details);
     }
