@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Moq;
-using OneOf.Chaining.Examples.Application.Models.Events.WeatherModelingEvents;
+using OneOf.Chaining.Examples.Application.Models.IntegrationEvents.WeatherModelingEvents;
 using OneOf.Chaining.Examples.Application.Services;
 using OneOf.Chaining.Examples.Infrastructure.Persistence;
 
@@ -17,7 +17,7 @@ public class EventListenerWebApplicationFactory : WebApplicationFactory<EventLis
     public readonly Mock<ILogger> MockLogger = new();
     //public readonly List<PersistedEvent> PersistedEvents = new();
 
-    public Func<WeatherDataPersistence>? SetSharedPersistence = null;
+    public Func<EventRepository>? SetSharedEventRepository = null;
 
     public HttpClient? HttpClient;
 
@@ -78,8 +78,8 @@ public class EventListenerWebApplicationFactory : WebApplicationFactory<EventLis
                 });
                 services.AddSingleton(client.Object);
 
-                if (SetSharedPersistence is not null)
-                    services.AddSingleton<IWeatherDataPersistence>(_ => SetSharedPersistence());
+                if (SetSharedEventRepository is not null)
+                    services.AddSingleton<IEventRepository>(_ => SetSharedEventRepository());
 
                 //MockDbConnectionFactory.Setup(factory => factory.CreateConnection()).Returns(MockWrappedDbConnection.Object);
                 //services.AddSingleton(provider => MockDbConnectionFactory.Object);

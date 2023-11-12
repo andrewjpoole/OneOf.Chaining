@@ -1,5 +1,6 @@
-﻿using OneOf.Chaining.Examples.Application.Orchestration;
-using OneOf.Chaining.Examples.Application.Services;
+﻿using OneOf.Chaining.Examples.Application.Services;
+using OneOf.Chaining.Examples.Domain.DomainEvents;
+using OneOf.Chaining.Examples.Domain.Entities;
 using OneOf.Chaining.Examples.Domain.Outcomes;
 using OneOf.Chaining.Examples.Infrastructure.ApiClients.WeatherModelingSystem;
 
@@ -14,23 +15,22 @@ public class WeatherModelingService : IWeatherModelingService
         this.weatherModelingServiceClientWrapper = weatherModelingServiceClientWrapper;
     }
 
-    public async Task<OneOf<CollectedWeatherDataDetails, Failure>> Submit(CollectedWeatherDataDetails details)
+    public async Task<OneOf<WeatherDataCollection, Failure>> Submit(WeatherDataCollection weatherDataCollection)
     {
         // calls out to an external service which returns an Accepted response
         // the result will be communicated via a service bus message...
 
         using var weatherModelingServiceClient = weatherModelingServiceClientWrapper.CreateClient();
 
-        var response = await weatherModelingServiceClient.PostCollectedData(details.Location, details); // response is null in LoggingHttpMessageHandler.Log.RequestEnd ???
+        var response = await weatherModelingServiceClient.PostCollectedData(weatherDataCollection.Location, weatherDataCollection); // response is null in LoggingHttpMessageHandler.Log.RequestEnd ???
         var bodyContent = await response.Content.ReadAsStringAsync();
 
         if (!response.IsSuccessStatusCode) 
-            return OneOf<CollectedWeatherDataDetails, Failure>.FromT1(new WeatherModelingServiceRejectionFailure(bodyContent));
+            return OneOf<WeatherDataCollection, Failure>.FromT1(new WeatherModelingServiceRejectionFailure(bodyContent));
         
         var submissionId = Guid.Parse(bodyContent);
-        return details with
-        {
-            WeatherModelingServiceSubmissionId = submissionId
-        };
+        await weatherDataCollection.AppendEvent(new SubmittedToModeling(submissionId));
+
+        return weatherDataCollection;
     }
 }

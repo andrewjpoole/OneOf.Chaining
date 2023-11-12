@@ -8,4 +8,9 @@ public class InvalidRequestFailure
     {
         ValidationErrors = validationErrors;
     }
+
+    public InvalidRequestFailure(string message)
+    {
+        ValidationErrors = new Dictionary<string, string[]>{{"model", new[] {message}}};
+    }
 }

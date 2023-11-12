@@ -1,8 +1,11 @@
-﻿using OneOf.Chaining.Examples.Application.Services;
+﻿using OneOf.Chaining.Examples.Application.Models.IntegrationEvents.WeatherModelingEvents;
+using OneOf.Chaining.Examples.Application.Services;
 using OneOf.Chaining.Examples.Domain.Outcomes;
-using OneOf.Types;
 using OneOf.Chaining.Examples.Application.Models.Requests;
-using OneOf.Chaining.Examples.Application.Models.Events.WeatherModelingEvents;
+using OneOf.Chaining.Examples.Domain.DomainEvents;
+using OneOf.Chaining.Examples.Domain.Entities;
+using OneOf.Chaining.Examples.Domain.EventSourcing;
+using OneOf.Chaining.Examples.Domain.ServiceDefinitions;
 
 namespace OneOf.Chaining.Examples.Application.Orchestration;
 
@@ -12,17 +15,17 @@ public class CollectedWeatherDataOrchestrator :
     IEventHandler<ModelingDataRejectedEvent>,
     IEventHandler<ModelUpdatedEvent>
 {
-    private readonly IWeatherDataPersistence weatherDataStore;
+    private readonly IEventPersistenceService eventPersistenceService;
     private readonly IWeatherModelingService weatherModelingService;
     private readonly INotificationService notificationService;
 
     public CollectedWeatherDataOrchestrator(
-        IWeatherDataPersistence weatherDataStore, 
+        IEventPersistenceService eventPersistenceService,
         IWeatherModelingService weatherModelingService,
         INotificationService notificationService) 
         //IContributorPaymentService contributorPaymentService)
     {
-        this.weatherDataStore = weatherDataStore;
+        this.eventPersistenceService = eventPersistenceService;
         this.weatherModelingService = weatherModelingService;
         this.notificationService = notificationService;
     }
@@ -31,13 +34,14 @@ public class CollectedWeatherDataOrchestrator :
         IWeatherDataValidator weatherDataValidator, 
         ILocationManager locationManager)
     {
-        return CollectedWeatherDataDetails.FromRequest(weatherDataLocation, weatherDataModel)
-            .Then(weatherDataValidator.Validate)
+        if (weatherDataValidator.Validate(weatherDataModel, out var errors) == false)
+            return Task.FromResult(OneOf<WeatherDataCollectionResponse, Failure>.FromT1(new InvalidRequestFailure(errors)));
+
+        var requestId = Guid.NewGuid();
+        return WeatherDataCollection.PersistOrHydrate(eventPersistenceService, requestId, Event.Create(new WeatherDataCollectionInitiated(weatherDataModel.ToEntity(), weatherDataLocation), requestId))
             .Then(locationManager.Locate)
-            .Then(weatherDataStore.InsertOrFetch)
             .Then(weatherModelingService.Submit) // Calls async external service 
-            .Then(weatherDataStore.UpdateStatusSubmittedToModeling)
-            .ToResult(details => details.ToResponse());
+            .ToResult(WeatherDataCollectionResponse.FromWeatherDataCollection);
     }
     /*
      
@@ -81,10 +85,9 @@ public class CollectedWeatherDataOrchestrator :
      */
     public async Task HandleEvent(ModelingDataAcceptedEvent @event)
     {
-        var result = await CollectedWeatherDataDetails.FromModelingEvent(@event)
-            .Then(weatherDataStore.Fetch)
-            .Then(weatherDataStore.UpdateStatusAcceptedIntoModeling)
-            .Then(weatherDataStore.CompleteSubmission);
+        var result = await WeatherDataCollection.Hydrate(eventPersistenceService, @event.RequestId)
+            .Then(x => x.AppendModelingDataAcceptedEvent())
+            .Then(x => x.AppendSubmissionCompleteEvent());
 
         if (result.IsT1)
             throw new Exception($"Something went wrong while handling {nameof(ModelingDataAcceptedEvent)}");
@@ -92,9 +95,8 @@ public class CollectedWeatherDataOrchestrator :
 
     public async Task HandleEvent(ModelingDataRejectedEvent @event)
     {
-        var result = await CollectedWeatherDataDetails.FromModelingEvent(@event)
-            .Then(weatherDataStore.Fetch)
-            .Then(weatherDataStore.UpdateStatusDataRejected);
+        var result = await WeatherDataCollection.Hydrate(eventPersistenceService, @event.RequestId)
+            .Then(x => x.AppendModelingDataRejectedEvent(@event.Reason));
 
         if (result.IsT1)
             throw new Exception($"Something went wrong while handling {nameof(ModelingDataRejectedEvent)}");
@@ -102,9 +104,8 @@ public class CollectedWeatherDataOrchestrator :
 
     public async Task HandleEvent(ModelUpdatedEvent @event)
     {
-        var result = await CollectedWeatherDataDetails.FromModelingEvent(@event)
-            .Then(weatherDataStore.Fetch)
-            .Then(weatherDataStore.UpdateStatusModelUpdated)
+        var result = await WeatherDataCollection.Hydrate(eventPersistenceService, @event.RequestId)
+            .Then(x => x.AppendModelUpdatedEvent())
             .Then(notificationService.NotifyModelUpdated);
 
         if (result.IsT1)

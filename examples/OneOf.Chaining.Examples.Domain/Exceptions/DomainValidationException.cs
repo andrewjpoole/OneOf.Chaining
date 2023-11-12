@@ -6,3 +6,6 @@ public class DomainValidationException : Exception
     {
     }
 }
+public class ExpectedEventsNotFoundException : Exception
+{
+}

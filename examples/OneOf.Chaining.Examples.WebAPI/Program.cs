@@ -4,7 +4,9 @@ using OneOf.Chaining.Examples.Application.Models.Requests;
 using OneOf.Chaining.Examples.Application.Orchestration;
 using OneOf.Chaining.Examples.Application.Services;
 using OneOf.Chaining.Examples.Domain.Outcomes;
+using OneOf.Chaining.Examples.Domain.ServiceDefinitions;
 using OneOf.Chaining.Examples.Infrastructure.ApiClients.WeatherModelingSystem;
+using OneOf.Chaining.Examples.Infrastructure.ContributorPayments;
 using OneOf.Chaining.Examples.Infrastructure.LocationManager;
 using OneOf.Chaining.Examples.Infrastructure.Notifications;
 using OneOf.Chaining.Examples.Infrastructure.Persistence;
@@ -25,10 +27,12 @@ public class Program
             .AddSingleton<IRegionValidator, RegionValidator>()
             .AddSingleton<IDateChecker, DateChecker>()
             .AddSingleton<IWeatherForecastGenerator, WeatherForecastGenerator>()
-            .AddSingleton<IWeatherDataPersistence, WeatherDataPersistence>()
+            .AddSingleton<IEventPersistenceService, EventPersistenceService>()
+            .AddSingleton<IEventRepository, EventRepository>()
             .AddSingleton<INotificationService, NotificationService>()
             .AddSingleton<IWeatherDataValidator, WeatherDataValidator>()
             .AddSingleton<ILocationManager, LocationManager>()
+            .AddSingleton<IContributorPaymentService, ContributorPaymentService>()
             .AddWeatherModelingService(builder.Configuration.GetSection(WeatherModelingServiceOptions.ConfigSectionName).Get<WeatherModelingServiceOptions>())
             .AddSingleton(typeof(IRefitClientWrapper<>), typeof(RefitClientWrapper<>));
 

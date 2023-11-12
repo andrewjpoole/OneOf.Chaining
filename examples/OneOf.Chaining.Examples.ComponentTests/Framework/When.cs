@@ -1,7 +1,7 @@
 using System.Text;
 using System.Text.Json;
-using OneOf.Chaining.Examples.Application.Models.Events.WeatherModelingEvents;
 using OneOf.Chaining.Examples.Application.Models.Requests;
+using OneOf.Chaining.Examples.Domain.EventSourcing;
 
 namespace OneOf.Chaining.Examples.Tests.Framework;
 
@@ -33,7 +33,7 @@ public class When
     public When WeWrapTheCollectedWeatherDataInAnHttpRequestMessage(CollectedWeatherDataModel collectedWeatherDataModel, string location, out HttpRequestMessage httpRequest)
     {
         httpRequest = new HttpRequestMessage(HttpMethod.Post, $"{Constants.WeatherModelingServiceSubmissionUri}{location}");
-        httpRequest.Content = new StringContent(JsonSerializer.Serialize(collectedWeatherDataModel), Encoding.UTF8, "application/json");
+        httpRequest.Content = new StringContent(JsonSerializer.Serialize(collectedWeatherDataModel, GlobalJsonSerialiserSettings.Default), Encoding.UTF8, "application/json");
 
         return this;
     }

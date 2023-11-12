@@ -3,8 +3,10 @@ using System.Text.Json;
 using FluentAssertions;
 using Moq;
 using Moq.Contrib.HttpClient;
+using OneOf.Chaining.Examples.Application.Models.Requests;
 using OneOf.Chaining.Examples.Application.Services;
 using OneOf.Chaining.Examples.Domain;
+using OneOf.Chaining.Examples.Domain.EventSourcing;
 
 namespace OneOf.Chaining.Examples.Tests.Framework;
 
@@ -56,12 +58,25 @@ public class Then
 
         return this;
     }
+    public Then TheBodyShouldContainARequestId(HttpResponseMessage response, out Guid requestId)
+    {
+        TheBodyShouldNotBeEmpty(response, out var body);
+
+        var bodyT = JsonSerializer.Deserialize<WeatherDataCollectionResponse>(body, GlobalJsonSerialiserSettings.Default);
+
+        if (bodyT is null)
+            throw new Exception($"unable to deserialise body into {nameof(WeatherDataCollectionResponse)}. Body:{body}");
+
+        requestId = bodyT.RequestId;
+
+        return this;
+    }
 
     public Then TheBodyShouldNotBeEmpty<T>(HttpResponseMessage response, Action<T>? assertAgainstBody = null)
     {
         TheBodyShouldNotBeEmpty(response, out var body);
 
-        var bodyT = JsonSerializer.Deserialize<T>(body, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        var bodyT = JsonSerializer.Deserialize<T>(body, GlobalJsonSerialiserSettings.Default);
 
         if (bodyT is null)
             throw new Exception($"unable to deserialise body into {nameof(T)}. Body:{body}");
@@ -79,9 +94,11 @@ public class Then
         return this;
     }
 
-    public Then TheEventShouldHaveBeenPersisted(EventNames eventName)
+    public Then TheEventShouldHaveBeenPersisted<T>()
     {
-        fixture.RealWeatherDataPersistence?.CollectedWeatherDataStatusUpdateRepository.Should().Contain(update => update.EventName == eventName.ToString());
+        var typeOfT = typeof(T);
+        var eventClassName = typeOfT.FullName ?? typeOfT.Name;
+        fixture.RealSharedEventRepository?.PersistedEvents.Should().Contain(e => e.EventClassName == eventClassName);
 
         return this;
     }

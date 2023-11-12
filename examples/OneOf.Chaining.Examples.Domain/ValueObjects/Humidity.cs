@@ -8,11 +8,12 @@ public record Humidity
 
     public string Unit => "%";
 
-    public Humidity(decimal humidity)
+    public Humidity(decimal value)
     {
-        Rules.DecimalRules.CheckPositive(humidity, () => humidity);
-        Rules.DecimalRules.CheckIsWithinRange(humidity, () => humidity, Unit, 100M);
+        var humidity = value;
+        Rules.DecimalRules.CheckPositive(humidity);
+        Rules.DecimalRules.CheckIsWithinRange(humidity, Unit, 100M);
 
-        Value = humidity;
+        Value = value;
     }
 }

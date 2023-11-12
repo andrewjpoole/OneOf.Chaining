@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Azure.Messaging.ServiceBus;
+using OneOf.Chaining.Examples.Domain.EventSourcing;
 
 namespace OneOf.Chaining.Examples.Tests.Framework;
 
@@ -47,7 +48,7 @@ public class TestableServiceBusProcessor<T> : ServiceBusProcessor where T : clas
 
     public static ProcessMessageEventArgs CreateMessageArgs(T payload, int deliveryCount = 1)
     {
-        var payloadJson = JsonSerializer.Serialize(payload);
+        var payloadJson = JsonSerializer.Serialize(payload, GlobalJsonSerialiserSettings.Default);
 
         var correlationId = Guid.NewGuid().ToString();
         var applicationProperties = new Dictionary<string, object>

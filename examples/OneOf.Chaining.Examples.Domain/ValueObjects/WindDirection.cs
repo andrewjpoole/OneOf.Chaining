@@ -6,13 +6,14 @@ public record WindDirection
 {
     public string Value { get; }
 
-    public WindDirection(string windDirection)
+    public WindDirection(string value)
     {
-        Rules.StringRules.CheckNotNullEmptyOrWhitespace(windDirection, () => windDirection);
-        Rules.StringRules.CheckMaxLength(windDirection, () => windDirection, 5);
+        var windDirection = value;
+        Rules.StringRules.CheckNotNullEmptyOrWhitespace(windDirection);
+        Rules.StringRules.CheckMaxLength(windDirection, 5);
 
         // todo accept decimal degrees or "SSW" etc?
 
-        Value = windDirection;
+        Value = value;
     }
 }

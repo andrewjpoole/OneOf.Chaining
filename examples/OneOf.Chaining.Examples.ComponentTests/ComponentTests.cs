@@ -1,9 +1,10 @@
 using System.Net;
 using FluentAssertions;
 using OneOf.Chaining.Examples.Application.Models;
-using OneOf.Chaining.Examples.Application.Models.Events.WeatherModelingEvents;
+using OneOf.Chaining.Examples.Application.Models.IntegrationEvents.WeatherModelingEvents;
 using OneOf.Chaining.Examples.Application.Models.Requests;
 using OneOf.Chaining.Examples.Application.Services;
+using OneOf.Chaining.Examples.Domain.DomainEvents;
 using OneOf.Chaining.Examples.Tests.Framework;
 
 namespace OneOf.Chaining.Examples.Tests;
@@ -48,21 +49,22 @@ public class ComponentTests : IClassFixture<ComponentTestFixture>
 
         then
             .And.TheModelingServiceSubmitEndpointShouldHaveBeenCalled(times: 1)
-            .And.TheEventShouldHaveBeenPersisted(EventNames.SubmittedToModeling)
+            .And.TheEventShouldHaveBeenPersisted<SubmittedToModeling>()
             .And.TheResponseCodeShouldBe(response, HttpStatusCode.OK)
-            .And.TheBodyShouldNotBeEmpty<WeatherDataCollectionResponse>(response, x =>x.RequestId.Should().NotBeEmpty());
+            .And.TheBodyShouldNotBeEmpty<WeatherDataCollectionResponse>(response, x =>x.RequestId.Should().NotBeEmpty())
+            .And.TheBodyShouldContainARequestId(response, out var requestId);
         
         when // in phase 2 (1st ASB message back from modeling service)
-            .AMessageAppears(message: new ModelingDataAcceptedEvent(submissionId));
+            .AMessageAppears(message: new ModelingDataAcceptedEvent(requestId));
 
         then
-            .TheEventShouldHaveBeenPersisted(EventNames.ModelingDataAccepted);
+            .TheEventShouldHaveBeenPersisted<ModelingDataAccepted>();
 
-        //when // in phase 3 (2nd ASB message back from modeling service)
-        //    .AMessageAppears(message: new ModelUpdatedEvent(submissionId));
+        when // in phase 3 (2nd ASB message back from modeling service)
+            .AMessageAppears(message: new ModelUpdatedEvent(requestId));
 
-        //then
-        //    .TheEventShouldHaveBeenPersisted(EventNames.ModelUpdated);
+        then
+            .TheEventShouldHaveBeenPersisted<ModelUpdated>();
 
     }
 }

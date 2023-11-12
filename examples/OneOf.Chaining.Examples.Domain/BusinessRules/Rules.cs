@@ -1,56 +1,77 @@
-﻿using System.Linq.Expressions;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
+using System.Text.Json;
 using OneOf.Chaining.Examples.Domain.Exceptions;
 
 namespace OneOf.Chaining.Examples.Domain.BusinessRules;
 
 public static class Rules
 {
-    public static class StringRules
-    {
-        public static void CheckMaxLength(string valueObject, Expression<Func<object>> expForPropertyName, int maxLength)
-        {
-            if (valueObject.Length > maxLength)
-                throw new DomainValidationException($"{GetName(expForPropertyName)} exceeds max length of {maxLength}.");
-        }
-
-        public static void CheckNotNullEmptyOrWhitespace(string valueObject, Expression<Func<object>> expForPropertyName)
-        {
-            if (string.IsNullOrWhiteSpace(valueObject))
-                throw new DomainValidationException($"{GetName(expForPropertyName)} must not be null, empty or whitespace.");
-        }
-    }
-
     public static class DecimalRules
     {
-        public static void CheckPositive(decimal valueObject, Expression<Func<object>> expForPropertyName)
+        public static void CheckPositive(
+            decimal valueObject, 
+            [CallerArgumentExpression(parameterName: "valueObject")] string? paramName = null)
         {
             if(valueObject < 0)
-                throw new DomainValidationException($"{GetName(expForPropertyName)} must be positive.");
+                throw new DomainValidationException($"{paramName} must be positive.");
         }
 
-        public static void CheckIsWithinRange(decimal valueObject, Expression<Func<object>> expForPropertyName, string unit, decimal max, decimal? min = null)
+        public static void CheckIsWithinRange(
+            decimal valueObject, 
+            string unit, 
+            decimal max, 
+            decimal? min = null,
+            [CallerArgumentExpression(parameterName: "valueObject")] string? paramName = null)
         {
             if (valueObject > max)
-                throw new DomainValidationException($"{GetName(expForPropertyName)} is out of range, must less than {max} {unit}.");
+                throw new DomainValidationException($"{paramName} is out of range, must less than {max} {unit}.");
 
             if (min is not null && valueObject < min)
-                throw new DomainValidationException($"{GetName(expForPropertyName)} is out of range, must greater than {min} {unit}.");
+                throw new DomainValidationException($"{paramName} is out of range, must greater than {min} {unit}.");
         }
     }
 
-    public static string GetName(Expression<Func<object>> exp)
+    public static class StringRules
     {
-        var body = exp.Body as MemberExpression;
-
-        if (body is null)
+        public static void CheckMaxLength(
+            string valueObject,
+            int maxLength,
+            [CallerArgumentExpression(parameterName: "valueObject")] string? paramName = null)
         {
-            var unaryExpressionBody = (UnaryExpression)exp.Body;
-            body = unaryExpressionBody.Operand as MemberExpression;
+            if (valueObject.Length > maxLength)
+                throw new DomainValidationException($"{paramName} exceeds max length of {maxLength}.");
         }
 
-        if (body is null)
-            throw new Exception("Expression must be a MemberExpression or a UnaryExpression");
+        public static void CheckNotNullEmptyOrWhitespace(
+            [NotNull] string valueObject,
+            [CallerArgumentExpression(parameterName: "valueObject")] string? paramName = null)
+        {
+            if (string.IsNullOrWhiteSpace(valueObject))
+                throw new DomainValidationException($"{paramName} must not be null, empty or whitespace.");
+        }
+    }
 
-        return body.Member.Name;
+    public static class GuidRules
+    {
+        public static void CheckNotEmpty(
+            Guid valueObject,
+            [CallerArgumentExpression(parameterName: "valueObject")] string? paramName = null)
+        {
+            if (valueObject == Guid.Empty)
+                throw new DomainValidationException($"{paramName} must not be an empty Guid.");
+        }
+    }
+
+    public static class JsonRules
+    {
+        public static void CheckValid([NotNull] string json,
+            [CallerArgumentExpression(parameterName: "json")] string? paramName = null)
+        {
+            if (string.IsNullOrEmpty(json))
+                throw new JsonException($"{paramName} is null or empty");
+
+            JsonDocument.Parse(json); // throws JsonException if string is not valid json
+        }
     }
 }

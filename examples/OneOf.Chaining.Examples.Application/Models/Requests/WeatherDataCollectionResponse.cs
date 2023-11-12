@@ -1,3 +1,11 @@
-﻿namespace OneOf.Chaining.Examples.Application.Models.Requests;
+﻿using OneOf.Chaining.Examples.Domain.Entities;
 
-public record WeatherDataCollectionResponse(Guid RequestId);
+namespace OneOf.Chaining.Examples.Application.Models.Requests;
+
+public record WeatherDataCollectionResponse(Guid RequestId)
+{
+    public static WeatherDataCollectionResponse FromWeatherDataCollection(WeatherDataCollection weatherDataCollection)
+    {
+        return new WeatherDataCollectionResponse(weatherDataCollection.RequestId);
+    }
+}

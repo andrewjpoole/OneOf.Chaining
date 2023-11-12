@@ -1,14 +1,14 @@
-﻿using OneOf.Chaining.Examples.Application.Orchestration;
-using OneOf.Chaining.Examples.Application.Services;
+﻿using OneOf.Chaining.Examples.Application.Services;
+using OneOf.Chaining.Examples.Domain.Entities;
 using OneOf.Chaining.Examples.Domain.Outcomes;
 
-namespace OneOf.Chaining.Examples.Infrastructure.Notifications
+namespace OneOf.Chaining.Examples.Infrastructure.Notifications;
+
+public class NotificationService : INotificationService
 {
-    public class NotificationService : INotificationService
+    public Task<OneOf<WeatherDataCollection, Failure>> NotifyModelUpdated(WeatherDataCollection weatherDataCollection)
     {
-        public Task<OneOf<CollectedWeatherDataDetails, Failure>> NotifyModelUpdated(CollectedWeatherDataDetails details)
-        {
-            throw new NotImplementedException();
-        }
+        // todo: simulate some notification maybe?
+        return Task.FromResult(OneOf<WeatherDataCollection, Failure>.FromT0(weatherDataCollection));
     }
 }

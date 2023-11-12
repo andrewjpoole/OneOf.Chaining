@@ -7,15 +7,15 @@ public class ComponentTestFixture : IDisposable
     public readonly ApiWebApplicationFactory ApiFactory;
     public readonly EventListenerWebApplicationFactory EventListenerFactory;
 
-    public WeatherDataPersistence RealWeatherDataPersistence = new();
+    public EventRepository RealSharedEventRepository = new();
 
     public ComponentTestFixture()
     {
         ApiFactory = new ApiWebApplicationFactory();
-        ApiFactory.SetSharedPersistence = () => RealWeatherDataPersistence;
+        ApiFactory.SetSharedEventRepository = () => RealSharedEventRepository;
 
         EventListenerFactory = new EventListenerWebApplicationFactory();
-        EventListenerFactory.SetSharedPersistence = () => RealWeatherDataPersistence;
+        EventListenerFactory.SetSharedEventRepository = () => RealSharedEventRepository;
     }
 
     public void Dispose()

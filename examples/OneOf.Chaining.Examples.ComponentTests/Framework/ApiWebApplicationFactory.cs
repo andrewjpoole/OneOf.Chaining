@@ -17,7 +17,7 @@ public class ApiWebApplicationFactory : WebApplicationFactory<WebAPI.Program>
     public readonly Mock<ILogger> MockLogger = new();
     public readonly Mock<HttpMessageHandler> MockWeatherModelingServiceHttpMessageHandler = new();
 
-    public Func<WeatherDataPersistence>? SetSharedPersistence = null;
+    public Func<EventRepository>? SetSharedEventRepository = null;
 
     // Using CreateHost here instead of ConfigureWebHost because CreateHost adds config just after WebApplication.CreateBuilder(args) is called
     // whereas ConfigureWebHost is called too late just before builder.Build() is called.
@@ -35,16 +35,14 @@ public class ApiWebApplicationFactory : WebApplicationFactory<WebAPI.Program>
 
                 services.AddHttpClient(typeof(IWeatherModelingServiceClient).FullName!, client => client.BaseAddress = new Uri(Constants.WeatherModelingServiceBaseUrl))
                     .ConfigurePrimaryHttpMessageHandler(() => MockWeatherModelingServiceHttpMessageHandler.Object);
-
-                //services.AddSingleton<IDbConnectionFactory>(provider => MockDbConnectionFactory.Object);
-
-                if(SetSharedPersistence is not null)
-                    services.AddSingleton<IWeatherDataPersistence>(_ => SetSharedPersistence());
+                
+                if(SetSharedEventRepository is not null)
+                    services.AddSingleton<IEventRepository>(_ => SetSharedEventRepository());
             });
 
         var host = base.CreateHost(builder);
 
-        //RealWeatherDataPersistence = (WeatherDataPersistence)host.Services.GetService<IWeatherDataPersistence>()!; // todo: add an underlying layer to mock in future.
+        //RealSharedEventRepository = (WeatherDataPersistence)host.Services.GetService<IWeatherDataPersistence>()!; // todo: add an underlying layer to mock in future.
 
         return host;
     }

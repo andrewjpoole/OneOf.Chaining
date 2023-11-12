@@ -8,11 +8,12 @@ public record WindSpeed
 
     public string Unit => "m/s";
 
-    public WindSpeed(decimal windspeed)
+    public WindSpeed(decimal value)
     {
-        Rules.DecimalRules.CheckPositive(windspeed, () => windspeed);
-        Rules.DecimalRules.CheckIsWithinRange(windspeed, () => windspeed, Unit, 70M);
+        var windspeed = value;
+        Rules.DecimalRules.CheckPositive(windspeed);
+        Rules.DecimalRules.CheckIsWithinRange(windspeed, Unit, 70M);
 
-        Value = windspeed;
+        Value = value;
     }
 }
