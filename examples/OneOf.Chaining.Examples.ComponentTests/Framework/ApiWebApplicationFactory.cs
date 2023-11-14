@@ -1,10 +1,8 @@
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Moq;
-using OneOf.Chaining.Examples.Application.Services;
 using OneOf.Chaining.Examples.Infrastructure.ApiClients.WeatherModelingSystem;
 using OneOf.Chaining.Examples.Infrastructure.Persistence;
 

@@ -108,7 +108,7 @@ public class GetWeatherReportRequestHandler : IGetWeatherReportRequestHandler
 
     /*
      * 1. details object passing through on success (containing state)
-     * 2. show actual report arg (remove MethodGrouping)
+     * 2. show actual arg (remove MethodGrouping)
      * 3. add an additional arg
      * 4. mention: navigation, debugging, testing
      * 5. go through Then extension method code

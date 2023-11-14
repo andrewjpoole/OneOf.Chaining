@@ -60,8 +60,8 @@ public class Program
 
         static async Task<IResult> CreateResponseFor<TSuccess>(Func<Task<OneOf<TSuccess, Failure>>> handleRequestFunc)
         {
-            var response = await handleRequestFunc.Invoke();
-            return response.Match(
+            var result = await handleRequestFunc.Invoke();
+            return result.Match(
                 success => Results.Ok(success),
                 failure => failure.Match(
                     invalidRequestFailure => Results.BadRequest(new ValidationProblemDetails(invalidRequestFailure.ValidationErrors)),

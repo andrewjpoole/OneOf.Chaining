@@ -3,7 +3,6 @@ using FluentAssertions;
 using OneOf.Chaining.Examples.Application.Models;
 using OneOf.Chaining.Examples.Application.Models.IntegrationEvents.WeatherModelingEvents;
 using OneOf.Chaining.Examples.Application.Models.Requests;
-using OneOf.Chaining.Examples.Application.Services;
 using OneOf.Chaining.Examples.Domain.DomainEvents;
 using OneOf.Chaining.Examples.Tests.Framework;
 
@@ -30,7 +29,8 @@ public class ComponentTests : IClassFixture<ComponentTestFixture>
         when.WeSendTheMessageToTheApi(apiRequest, out var response);
 
         then.TheResponseCodeShouldBe(response, HttpStatusCode.OK)
-            .And.TheBodyShouldNotBeEmpty<WeatherReportResponse>(response, x => x.Summary.Should().NotBeEmpty());
+            .And.TheBodyShouldNotBeEmpty<WeatherReportResponse>(response, 
+                x => x.Summary.Should().NotBeEmpty());
     }
 
     [Fact]
@@ -51,7 +51,8 @@ public class ComponentTests : IClassFixture<ComponentTestFixture>
             .And.TheModelingServiceSubmitEndpointShouldHaveBeenCalled(times: 1)
             .And.TheEventShouldHaveBeenPersisted<SubmittedToModeling>()
             .And.TheResponseCodeShouldBe(response, HttpStatusCode.OK)
-            .And.TheBodyShouldNotBeEmpty<WeatherDataCollectionResponse>(response, x =>x.RequestId.Should().NotBeEmpty())
+            .And.TheBodyShouldNotBeEmpty<WeatherDataCollectionResponse>(response, 
+                x => x.RequestId.Should().NotBeEmpty())
             .And.TheBodyShouldContainARequestId(response, out var requestId);
         
         when // in phase 2 (1st ASB message back from modeling service)

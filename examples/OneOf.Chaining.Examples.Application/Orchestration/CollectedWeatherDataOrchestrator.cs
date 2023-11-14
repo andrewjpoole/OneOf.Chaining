@@ -22,8 +22,8 @@ public class CollectedWeatherDataOrchestrator :
     public CollectedWeatherDataOrchestrator(
         IEventPersistenceService eventPersistenceService,
         IWeatherModelingService weatherModelingService,
-        INotificationService notificationService) 
-        //IContributorPaymentService contributorPaymentService)
+        INotificationService notificationService
+        )//IContributorPaymentService contributorPaymentService)
     {
         this.eventPersistenceService = eventPersistenceService;
         this.weatherModelingService = weatherModelingService;
@@ -118,5 +118,5 @@ public class CollectedWeatherDataOrchestrator :
  * 2. add in the event handlers
  * 3. shared details object + using records
  * 4. Add in IContributorPaymentService
- * 5. benefits of all flows being in one place - intent is the star of the show!
+ * 5. Show e2e component tests
  */

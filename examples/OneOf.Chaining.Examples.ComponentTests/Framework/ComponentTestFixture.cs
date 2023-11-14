@@ -21,10 +21,7 @@ public class ComponentTestFixture : IDisposable
     public void Dispose()
     {
         ApiFactory.HttpClient?.Dispose();
-        ApiFactory.Dispose();
-
         EventListenerFactory.HttpClient?.Dispose();
-        EventListenerFactory.Dispose();
     }
 
     public (Given given, When when, Then then) SetupHelpers()
