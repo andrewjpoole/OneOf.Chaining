@@ -5,6 +5,7 @@ using OneOf.Chaining.Examples.Application.Orchestration;
 using OneOf.Chaining.Examples.Application.Services;
 using OneOf.Chaining.Examples.Domain.Outcomes;
 using OneOf.Chaining.Examples.Domain.ServiceDefinitions;
+using OneOf.Chaining.Examples.Infrastructure.ApiClients;
 using OneOf.Chaining.Examples.Infrastructure.ApiClients.WeatherModelingSystem;
 using OneOf.Chaining.Examples.Infrastructure.ContributorPayments;
 using OneOf.Chaining.Examples.Infrastructure.LocationManager;

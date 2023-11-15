@@ -1,7 +1,7 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>netstandard2.1</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 	<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -13,16 +13,19 @@
 	<RepositoryUrl>https://github.com/andrewjpoole/OneOf.Chaining</RepositoryUrl>
 	<PackageTags>Async method chaining, Clear Orchestration, OneOf</PackageTags>
 	<PackageReleaseNotes>
+		1.2.0) Package updates and targeting netstandard2.1 and embedded symbols in package for ease of debugging
 		1.1.0) Added parallel ThenWaitForAll and ThenWaitForFirst methods
 		1.0.0) initial version
 	</PackageReleaseNotes>
-	<Version>1.1.0</Version>
+	<Version>1.2.0</Version>
 	<RepositoryType>github</RepositoryType>
 	<PackageLicenseExpression>MIT</PackageLicenseExpression>
-	<IncludeSymbols>true</IncludeSymbols>
+	<!--<IncludeSymbols>true</IncludeSymbols>-->
 	<EmbedAllSources>true</EmbedAllSources>
+	<DebugType>Embedded</DebugType>
 	<GenerateDocumentationFile>True</GenerateDocumentationFile>
 	<PackageReadmeFile>README.md</PackageReadmeFile>
+	<LangVersion>latest</LangVersion>
   </PropertyGroup>
 
 	<ItemGroup>

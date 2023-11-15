@@ -1,14 +1,11 @@
 ﻿using System.Text.Json;
 using Refit;
 
-public class RefitClientWrapper<T> : IRefitClientWrapper<T>
-{
-    private readonly IHttpClientFactory clientFactory;
+namespace OneOf.Chaining.Examples.Infrastructure.ApiClients;
 
-    public RefitClientWrapper(IHttpClientFactory clientFactory)
-    {
-        this.clientFactory = clientFactory;
-    }
+public class RefitClientWrapper<T>(IHttpClientFactory clientFactory) : IRefitClientWrapper<T>
+{
+    private readonly IHttpClientFactory clientFactory = clientFactory;
 
     public T CreateClient()
     {
@@ -17,7 +14,8 @@ public class RefitClientWrapper<T> : IRefitClientWrapper<T>
             PropertyNameCaseInsensitive = true
         };
 
-        var nameofT = typeof(T).FullName;
+        var typeOfT = typeof(T);
+        var nameofT = typeOfT.FullName ?? typeOfT.Name;
         var refitClient = RestService.For<T>(clientFactory.CreateClient(nameofT), new RefitSettings(new SystemTextJsonContentSerializer(jsonSerializerOptions)));
 
         return refitClient;

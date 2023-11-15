@@ -1,11 +1,12 @@
 ﻿using OneOf.Chaining.Examples.Domain;
 using OneOf.Chaining.Examples.Domain.Outcomes;
+#pragma warning disable CS1998
 
 namespace OneOf.Chaining.Examples.Application.Services;
 
 public class RegionValidator : IRegionValidator
 {
-    private List<string> supportedRegions = new() { "taunton", "bristol", "london" };
+    private readonly List<string> supportedRegions = ["taunton", "bristol", "london"];
 
     public async Task<OneOf<WeatherReportDetails, Failure>> ValidateRegion(WeatherReportDetails report)
     {

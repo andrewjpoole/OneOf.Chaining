@@ -1,5 +1,6 @@
 ﻿using OneOf.Chaining.Examples.Domain;
 using OneOf.Chaining.Examples.Domain.Outcomes;
+#pragma warning disable CS1998
 
 namespace OneOf.Chaining.Examples.Application.Services;
 
