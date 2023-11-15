@@ -38,7 +38,7 @@ public class WeatherDataCollection : AggregateRootBase
     {
         var persistedEvents = (await eventPersistenceService.FetchEvents(requestId)).ToList();
 
-        if (!persistedEvents.Any())
+        if (persistedEvents.Count == 0)
             throw new ExpectedEventsNotFoundException();
 
         return new WeatherDataCollection(requestId, persistedEvents, eventPersistenceService);
@@ -48,7 +48,7 @@ public class WeatherDataCollection : AggregateRootBase
     {
         var existingPersistedEvents = (await eventPersistenceService.FetchEvents(requestId)).ToList();
 
-        if (existingPersistedEvents.Any())
+        if (existingPersistedEvents.Count != 0)
             return new WeatherDataCollection(requestId, existingPersistedEvents, eventPersistenceService);
         
         var initialEvents = new List<Event>

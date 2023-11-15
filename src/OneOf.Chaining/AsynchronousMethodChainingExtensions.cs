@@ -184,7 +184,7 @@ public static class AsynchronousMethodChainingExtensions
         this Task<OneOf<T, TFailure>> currentJobResult, 
         params Func<T, Task<OneOf<T, TFailure>>>[] tasks)
     {
-        OneOf<T, TFailure> DefaultResultMergingStrategy(T inputT, List<OneOf<T, TFailure>> results)
+        static OneOf<T, TFailure> DefaultResultMergingStrategy(T inputT, List<OneOf<T, TFailure>> results)
         {
             return results.Any(x => x.IsT1) ? results.First(x => x.IsT1) : inputT;
         }

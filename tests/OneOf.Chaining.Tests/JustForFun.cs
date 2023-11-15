@@ -1,4 +1,5 @@
 ﻿using OneOf.Types;
+#pragma warning disable CS1998
 
 namespace OneOf.Chaining.Tests;
 

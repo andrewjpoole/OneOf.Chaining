@@ -1,6 +1,7 @@
 using OneOf.Types;
 
 namespace OneOf.Chaining.Tests;
+#pragma warning disable IDE0062 // Make local function 'static'
 
 public class AsynchronousMethodChainingTests
 {
