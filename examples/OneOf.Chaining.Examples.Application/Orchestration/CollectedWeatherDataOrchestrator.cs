@@ -11,9 +11,9 @@ namespace OneOf.Chaining.Examples.Application.Orchestration;
 
 public class CollectedWeatherDataOrchestrator : 
     IPostWeatherReportDataHandler,
-    IEventHandler<ModelingDataAcceptedEvent>, 
-    IEventHandler<ModelingDataRejectedEvent>,
-    IEventHandler<ModelUpdatedEvent>
+    IEventHandler<ModelingDataAcceptedIntegrationEvent>, 
+    IEventHandler<ModelingDataRejectedIntegrationEvent>,
+    IEventHandler<ModelUpdatedIntegrationEvent>
 {
     private readonly IEventPersistenceService eventPersistenceService;
     private readonly IWeatherModelingService weatherModelingService;
@@ -83,39 +83,39 @@ public class CollectedWeatherDataOrchestrator :
 
 
      */
-    public async Task HandleEvent(ModelingDataAcceptedEvent @event)
+    public async Task HandleEvent(ModelingDataAcceptedIntegrationEvent dataAcceptedIntegrationEvent)
     {
-        var result = await WeatherDataCollection.Hydrate(eventPersistenceService, @event.RequestId)
+        var result = await WeatherDataCollection.Hydrate(eventPersistenceService, dataAcceptedIntegrationEvent.RequestId)
             .Then(x => x.AppendModelingDataAcceptedEvent())
             .Then(x => x.AppendSubmissionCompleteEvent());
 
         if (result.IsT1)
-            throw new Exception($"Something went wrong while handling {nameof(ModelingDataAcceptedEvent)}");
+            throw new Exception($"Something went wrong while handling {nameof(ModelingDataAcceptedIntegrationEvent)}");
     }
 
-    public async Task HandleEvent(ModelingDataRejectedEvent @event)
+    public async Task HandleEvent(ModelingDataRejectedIntegrationEvent dataRejectedIntegrationEvent)
     {
-        var result = await WeatherDataCollection.Hydrate(eventPersistenceService, @event.RequestId)
-            .Then(x => x.AppendModelingDataRejectedEvent(@event.Reason));
+        var result = await WeatherDataCollection.Hydrate(eventPersistenceService, dataRejectedIntegrationEvent.RequestId)
+            .Then(x => x.AppendModelingDataRejectedEvent(dataRejectedIntegrationEvent.Reason));
 
         if (result.IsT1)
-            throw new Exception($"Something went wrong while handling {nameof(ModelingDataRejectedEvent)}");
+            throw new Exception($"Something went wrong while handling {nameof(ModelingDataRejectedIntegrationEvent)}");
     }
 
-    public async Task HandleEvent(ModelUpdatedEvent @event)
+    public async Task HandleEvent(ModelUpdatedIntegrationEvent integrationEvent)
     {
-        var result = await WeatherDataCollection.Hydrate(eventPersistenceService, @event.RequestId)
+        var result = await WeatherDataCollection.Hydrate(eventPersistenceService, integrationEvent.RequestId)
             .Then(x => x.AppendModelUpdatedEvent())
             .Then(notificationService.NotifyModelUpdated);
 
         if (result.IsT1)
-            throw new Exception($"Something went wrong while handling {nameof(ModelUpdatedEvent)}");
+            throw new Exception($"Something went wrong while handling {nameof(ModelUpdatedIntegrationEvent)}");
     }
 }
 
 /*
  * 1. roughly explain the new flow
- * 2. add in the event handlers
+ * 2. add in the dataAcceptedIntegrationEvent handlers
  * 3. shared details object + using records
  * 4. Add in IContributorPaymentService
  * 5. Show e2e component tests

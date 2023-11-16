@@ -65,7 +65,7 @@ public class Program
             return result.Match(
                 success => Results.Ok(success),
                 failure => failure.Match(
-                    invalidRequestFailure => Results.BadRequest(new ValidationProblemDetails(invalidRequestFailure.ValidationErrors)),
+                    invalidRequestFailure => Results.BadRequest(invalidRequestFailure.ToValidationProblemDetails()),
                     unsupportedRegionFailure => Results.UnprocessableEntity(unsupportedRegionFailure.ToProblemDetails()),
                     weatherModelingServiceRejectionFailure => Results.UnprocessableEntity(weatherModelingServiceRejectionFailure.Message)
                 ));

@@ -44,8 +44,8 @@ public static class WebApplicationBuilderExtensions
             .AddWeatherModelingService(builder.Configuration.GetSection(WeatherModelingServiceOptions.ConfigSectionName).Get<WeatherModelingServiceOptions>())
             .AddSingleton(typeof(IRefitClientWrapper<>), typeof(RefitClientWrapper<>));
 
-        services.AddHostedServiceBusEventListener<ModelingDataAcceptedEvent, CollectedWeatherDataOrchestrator>();
-        services.AddHostedServiceBusEventListener<ModelingDataRejectedEvent, CollectedWeatherDataOrchestrator>();
-        services.AddHostedServiceBusEventListener<ModelUpdatedEvent, CollectedWeatherDataOrchestrator>();
+        services.AddHostedServiceBusEventListener<ModelingDataAcceptedIntegrationEvent, CollectedWeatherDataOrchestrator>();
+        services.AddHostedServiceBusEventListener<ModelingDataRejectedIntegrationEvent, CollectedWeatherDataOrchestrator>();
+        services.AddHostedServiceBusEventListener<ModelUpdatedIntegrationEvent, CollectedWeatherDataOrchestrator>();
     }
 }

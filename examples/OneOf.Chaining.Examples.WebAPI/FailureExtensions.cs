@@ -14,4 +14,9 @@ public static class FailureExtensions
             Detail = failure.Detail
         };
     }
+
+    public static ProblemDetails ToValidationProblemDetails(this InvalidRequestFailure failure)
+    {
+        return new ValidationProblemDetails(failure.ValidationErrors);
+    }
 }

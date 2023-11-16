@@ -13,4 +13,6 @@ public class InvalidRequestFailure
     {
         ValidationErrors = new Dictionary<string, string[]>{{"model", new[] {message}}};
     }
+
+
 }

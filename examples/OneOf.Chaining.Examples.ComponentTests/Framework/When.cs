@@ -16,10 +16,16 @@ public class When
     }
     public When And => this;
 
+    public When InPhase(string newPhase)
+    {
+        fixture.SetPhase(newPhase);
+        return this;
+    }
+
     public When WeSendTheMessageToTheApi(HttpRequestMessage httpRequest, out HttpResponseMessage response)
     {
         if (fixture.ApiFactory.HttpClient is null)
-            throw new Exception("http client has not been initialised");
+            throw new Exception("The Http client has not been initialised, please ensure Given.TheServerHasStarted() has been called");
 
         response = fixture.ApiFactory.HttpClient.SendAsync(httpRequest).GetAwaiter().GetResult();
 
@@ -27,7 +33,7 @@ public class When
             return this;
 
         var body = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
-        throw new Exception($"Test Request from When.WeSendTheMessageToTheApi() was not successful; {body}");
+        throw new Exception($"Test Request from When.WeSendTheMessageToTheApi() in phase {fixture.CurrentPhase} was not successful; {body}");
     }
 
     public When WeWrapTheCollectedWeatherDataInAnHttpRequestMessage(CollectedWeatherDataModel collectedWeatherDataModel, string location, out HttpRequestMessage httpRequest)

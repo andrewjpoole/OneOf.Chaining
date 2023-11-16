@@ -35,9 +35,9 @@ public class EventListenerWebApplicationFactory : WebApplicationFactory<EventLis
     // whereas ConfigureWebHost is called too late just before builder.Build() is called
     protected override IHost CreateHost(IHostBuilder builder)
     {
-        Environment.SetEnvironmentVariable("ServiceBus__Inbound__Names__ModelingDataAcceptedEvent", TestModelingDataAcceptedEventQueueName);
-        Environment.SetEnvironmentVariable("ServiceBus__Inbound__Names__ModelingDataRejectedEvent", TestModelingDataRejectedEventQueueName);
-        Environment.SetEnvironmentVariable("ServiceBus__Inbound__Names__ModelUpdatedEvent", TestModelUpdatedEventQueueName);
+        Environment.SetEnvironmentVariable("ServiceBus__Inbound__Names__ModelingDataAcceptedIntegrationEvent", TestModelingDataAcceptedEventQueueName);
+        Environment.SetEnvironmentVariable("ServiceBus__Inbound__Names__ModelingDataRejectedIntegrationEvent", TestModelingDataRejectedEventQueueName);
+        Environment.SetEnvironmentVariable("ServiceBus__Inbound__Names__ModelUpdatedIntegrationEvent", TestModelUpdatedEventQueueName);
         Environment.SetEnvironmentVariable("ServiceBus__Inbound__MaxConcurrentCalls", "1");
         Environment.SetEnvironmentVariable("ServiceBus__Inbound__InitialBackoffInMs", "2000");
         Environment.SetEnvironmentVariable("ServiceBus__Inbound__PrefetchCount", "1");
@@ -55,21 +55,21 @@ public class EventListenerWebApplicationFactory : WebApplicationFactory<EventLis
                 {
                     if (queue == $"{localMachineNamePrefix}{TestModelingDataAcceptedEventQueueName}")
                     {
-                        var testableProcessor = new TestableServiceBusProcessor<ModelingDataAcceptedEvent>();
+                        var testableProcessor = new TestableServiceBusProcessor<ModelingDataAcceptedIntegrationEvent>();
                         TestableServiceBusProcessors.Add(testableProcessor);
                         return testableProcessor;
                     }
 
                     if (queue == $"{localMachineNamePrefix}{TestModelingDataRejectedEventQueueName}")
                     {
-                        var testableProcessor = new TestableServiceBusProcessor<ModelingDataRejectedEvent>();
+                        var testableProcessor = new TestableServiceBusProcessor<ModelingDataRejectedIntegrationEvent>();
                         TestableServiceBusProcessors.Add(testableProcessor);
                         return testableProcessor;
                     }
 
                     if (queue == $"{localMachineNamePrefix}{TestModelUpdatedEventQueueName}")
                     {
-                        var testableProcessor = new TestableServiceBusProcessor<ModelUpdatedEvent>();
+                        var testableProcessor = new TestableServiceBusProcessor<ModelUpdatedIntegrationEvent>();
                         TestableServiceBusProcessors.Add(testableProcessor);
                         return testableProcessor;
                     }
