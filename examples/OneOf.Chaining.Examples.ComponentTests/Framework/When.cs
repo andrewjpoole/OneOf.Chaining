@@ -33,7 +33,7 @@ public class When
             return this;
 
         var body = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
-        throw new Exception($"Test Request from When.WeSendTheMessageToTheApi() in phase {fixture.CurrentPhase} was not successful; {body}");
+        throw new Exception($"Test Request from When.WeSendTheMessageToTheApi() {fixture.CurrentPhase} was not successful; {body}");
     }
 
     public When WeWrapTheCollectedWeatherDataInAnHttpRequestMessage(CollectedWeatherDataModel collectedWeatherDataModel, string location, out HttpRequestMessage httpRequest)

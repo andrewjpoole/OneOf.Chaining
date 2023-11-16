@@ -38,8 +38,7 @@ public class ComponentTests : IClassFixture<ComponentTestFixture>
     {
         var (given, when, then) = testFixture.SetupHelpers();
 
-        given
-            .WeHaveSomeCollectedWeatherData(out var collectedWeatherModel)
+        given.WeHaveSomeCollectedWeatherData(out var collectedWeatherModel)
             .And.TheModelingServiceSubmitEndpointWillReturn(HttpStatusCode.Accepted, out var submissionId)
             .And.TheServerIsStarted();
         
@@ -47,8 +46,7 @@ public class ComponentTests : IClassFixture<ComponentTestFixture>
             .And.WeWrapTheCollectedWeatherDataInAnHttpRequestMessage(collectedWeatherModel, "testLocation", out var httpRequest)
             .And.WeSendTheMessageToTheApi(httpRequest, out var response);
 
-        then
-            .And.TheModelingServiceSubmitEndpointShouldHaveBeenCalled(times: 1)
+        then.And.TheModelingServiceSubmitEndpointShouldHaveBeenCalled(times: 1)
             .And.TheEventShouldHaveBeenPersisted<SubmittedToModeling>()
             .And.TheResponseCodeShouldBe(response, HttpStatusCode.OK)
             .And.TheBodyShouldNotBeEmpty<WeatherDataCollectionResponse>(response, 
@@ -58,14 +56,12 @@ public class ComponentTests : IClassFixture<ComponentTestFixture>
         when.InPhase("2 (1st ASB message back from modeling service)")
             .AMessageAppears(message: new ModelingDataAcceptedIntegrationEvent(weatherDataCollectionResponseBody.RequestId));
 
-        then
-            .TheEventShouldHaveBeenPersisted<ModelingDataAccepted>();
+        then.TheEventShouldHaveBeenPersisted<ModelingDataAccepted>();
 
         when.InPhase("3 (2nd ASB message back from modeling service)")
             .AMessageAppears(message: new ModelUpdatedIntegrationEvent(weatherDataCollectionResponseBody.RequestId));
 
-        then
-            .TheEventShouldHaveBeenPersisted<ModelUpdated>();
+        then.TheEventShouldHaveBeenPersisted<ModelUpdated>();
 
     }
 }
