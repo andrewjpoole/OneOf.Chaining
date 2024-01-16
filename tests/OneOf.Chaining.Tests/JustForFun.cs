@@ -9,7 +9,9 @@ public class JustForFun
     {
         return await StateStore.Create()
             .Then(Tasks.DriveToEvent)
-            .IfThen(s => s.FeelingHungry, s => Tasks.EatPizza(s, "Pepperoni", "Ham&Pineapple", "Margherita"))
+            .IfThen(s => s.FeelingHungry, 
+                s => Tasks.EatPizza(s, 
+                    "Pepperoni", "Ham&Pineapple", "Margherita"))
             .ThenWaitForFirst(Tasks.FullStomach, Tasks.RunOutOfPizza)
             .ThenWaitForAll(Tasks.LearnStuff, Tasks.AskQuestions)
             .Then(Tasks.ChatWithNewFriends)

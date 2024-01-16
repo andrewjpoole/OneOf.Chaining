@@ -9,15 +9,8 @@ using OneOf.Chaining.Examples.Tests.Framework;
 namespace OneOf.Chaining.Examples.Tests;
 
 [Collection(nameof(NonParallelCollectionDefinition))]
-public class ComponentTests : IClassFixture<ComponentTestFixture>
+public class ComponentTests(ComponentTestFixture testFixture) : IClassFixture<ComponentTestFixture>
 {
-    private readonly ComponentTestFixture testFixture;
-
-    public ComponentTests(ComponentTestFixture testFixture)
-    {
-        this.testFixture = testFixture;
-    }
-
     [Fact]
     public void Return_a_WeatherReport_given_valid_region_and_date()
     {
