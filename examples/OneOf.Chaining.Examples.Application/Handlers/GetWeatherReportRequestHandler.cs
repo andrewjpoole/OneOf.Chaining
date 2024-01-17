@@ -106,13 +106,13 @@ public class GetWeatherReportRequestHandler : IGetWeatherReportRequestHandler
 
 
 
-    /*
-     * 1. details object passing through on success (containing state)
-     * 2. show actual arg (remove MethodGrouping)
-     * 3. add an additional arg
-     * 4. mention: navigation, debugging, testing
-     * 5. go through Then extension method code
-     * 6. IfThen .IfThen(report => report.PopulatedFromCache is false, 
-     * 7. onFailure
-     */
+/*
+ * 1. details object passing through on success (containing state)
+ * 2. add CheckCache() show actual details arg without MethodGrouping
+ * 3. add an additional arg
+ * 4. mention: navigation, debugging, testing
+ * 5. go through Then extension method code
+ * 6. IfThen .IfThen(report => report.PopulatedFromCache is false, 
+ * 7. onFailure
+ */
 }

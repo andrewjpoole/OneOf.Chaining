@@ -114,9 +114,9 @@ public class CollectedWeatherDataOrchestrator :
 }
 
 /*
- * 1. roughly explain the new flow
- * 2. add in the dataAcceptedIntegrationEvent handlers
- * 3. shared details object + using records
- * 4. Add in IContributorPaymentService
- * 5. Show e2e component tests
- */
+* 1. roughly explain the new flow
+* 2. add in the event handlers
+* 3. explain WeatherDataCollection and domain events
+* 4. Add in IContributorPaymentService
+* 5. Show e2e component tests
+*/
