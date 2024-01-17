@@ -10,7 +10,6 @@ public class RegionValidator : IRegionValidator
 
     public async Task<OneOf<WeatherReportDetails, Failure>> ValidateRegion(WeatherReportDetails report)
     {
-
         if (supportedRegions.Contains(report.RequestedRegion.ToLower()))
             return report;
 
