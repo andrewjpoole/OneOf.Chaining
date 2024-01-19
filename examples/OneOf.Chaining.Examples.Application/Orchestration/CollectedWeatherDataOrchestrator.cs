@@ -18,16 +18,18 @@ public class CollectedWeatherDataOrchestrator :
     private readonly IEventPersistenceService eventPersistenceService;
     private readonly IWeatherModelingService weatherModelingService;
     private readonly INotificationService notificationService;
+    private readonly IContributorPaymentService contributorPaymentService;
 
     public CollectedWeatherDataOrchestrator(
         IEventPersistenceService eventPersistenceService,
         IWeatherModelingService weatherModelingService,
-        INotificationService notificationService
-        )//IContributorPaymentService contributorPaymentService)
+        INotificationService notificationService,
+        IContributorPaymentService contributorPaymentService)
     {
         this.eventPersistenceService = eventPersistenceService;
         this.weatherModelingService = weatherModelingService;
         this.notificationService = notificationService;
+        this.contributorPaymentService = contributorPaymentService;
     }
 
     public Task<OneOf<WeatherDataCollectionResponse, Failure>> Handle(string weatherDataLocation, CollectedWeatherDataModel weatherDataModel, 
@@ -40,7 +42,9 @@ public class CollectedWeatherDataOrchestrator :
         var requestId = Guid.NewGuid();
         return WeatherDataCollection.PersistOrHydrate(eventPersistenceService, requestId, Event.Create(new WeatherDataCollectionInitiated(weatherDataModel.ToEntity(), weatherDataLocation), requestId))
             .Then(locationManager.Locate)
-            .Then(weatherModelingService.Submit) // Calls async external service 
+            .Then(contributorPaymentService.CreatePendingPayment)
+            .Then(weatherModelingService.Submit, // Calls async external service, handlers for the various responses can be found below... 
+                (collection, failure) => contributorPaymentService.RevokePendingPayment(collection)) 
             .ToResult(WeatherDataCollectionResponse.FromWeatherDataCollection);
     }
     /*
@@ -87,6 +91,7 @@ public class CollectedWeatherDataOrchestrator :
     {
         var result = await WeatherDataCollection.Hydrate(eventPersistenceService, dataAcceptedIntegrationEvent.RequestId)
             .Then(x => x.AppendModelingDataAcceptedEvent())
+            .Then(contributorPaymentService.CommitPendingPayment)
             .Then(x => x.AppendSubmissionCompleteEvent());
 
         if (result.IsT1)
@@ -96,7 +101,8 @@ public class CollectedWeatherDataOrchestrator :
     public async Task HandleEvent(ModelingDataRejectedIntegrationEvent dataRejectedIntegrationEvent)
     {
         var result = await WeatherDataCollection.Hydrate(eventPersistenceService, dataRejectedIntegrationEvent.RequestId)
-            .Then(x => x.AppendModelingDataRejectedEvent(dataRejectedIntegrationEvent.Reason));
+            .Then(x => x.AppendModelingDataRejectedEvent(dataRejectedIntegrationEvent.Reason))
+            .Then(contributorPaymentService.RevokePendingPayment);
 
         if (result.IsT1)
             throw new Exception($"Something went wrong while handling {nameof(ModelingDataRejectedIntegrationEvent)}");
@@ -113,7 +119,7 @@ public class CollectedWeatherDataOrchestrator :
     }
 }
 
-/*
+/* Notes for talk demo
 * 1. roughly explain the new flow
 * 2. add in the event handlers
 * 3. explain WeatherDataCollection and domain events

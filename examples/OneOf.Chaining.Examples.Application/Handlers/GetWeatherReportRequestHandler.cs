@@ -72,10 +72,13 @@ public class GetWeatherReportRequestHandler : IGetWeatherReportRequestHandler
     public async Task<OneOf<WeatherReportResponse, Failure>> Handle(
         string requestedRegion, DateTime requestedDate)
     {
+        var settings = "34h5gm4h5g"; // An example of a variable in scope that can be captured in the lambda and passed into a chained method below...
         return await WeatherReportDetails.Create(requestedRegion, requestedDate)
             .Then(regionValidator.ValidateRegion)
             .Then(dateChecker.CheckDate)
-            .Then(weatherForecastGenerator.Generate)
+            .Then(d => CheckCache(d, settings))
+            .IfThen(d => d.PopulatedFromCache is false, 
+                weatherForecastGenerator.Generate)
             .ToResult(WeatherReportResponse.FromDetails);
     }
 /*
@@ -92,7 +95,7 @@ public class GetWeatherReportRequestHandler : IGetWeatherReportRequestHandler
 
 */
     public async Task<OneOf<WeatherReportDetails, Failure>> CheckCache(
-        WeatherReportDetails details)
+        WeatherReportDetails details, string settings)
     {
         // Check and populate from a local in-memory cache etc...
         // Methods from anywhere can be chained as long as they have the correct signature...
@@ -106,7 +109,7 @@ public class GetWeatherReportRequestHandler : IGetWeatherReportRequestHandler
 
 
 
-/*
+/* Notes for talk demo...
  * 1. details object passing through on success (containing state)
  * 2. add CheckCache() show actual details arg without MethodGrouping
  * 3. add an additional arg
