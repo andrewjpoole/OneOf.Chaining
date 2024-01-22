@@ -98,8 +98,8 @@ public class GetWeatherReportRequestHandler : IGetWeatherReportRequestHandler
         WeatherReportDetails details, string settings)
     {
         // Check and populate from a local in-memory cache etc...
-        // Methods from anywhere can be chained as long as they have the correct signature...
-
+        // Methods from anywhere can be chained as long as they have the correct return type, matching the T and TFailure for the chain...
+        
         await Task.Delay(50);
         details.Set("summary from cache", 32);
         details.PopulatedFromCache = true;

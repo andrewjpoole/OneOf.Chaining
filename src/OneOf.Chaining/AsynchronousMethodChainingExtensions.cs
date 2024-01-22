@@ -1,6 +1,4 @@
-﻿using OneOf.Types;
-
-// ReSharper disable InconsistentNaming
+﻿// ReSharper disable InconsistentNaming
 
 namespace OneOf.Chaining;
 
@@ -64,9 +62,11 @@ public static class AsynchronousMethodChainingExtensions
         if (result.IsT0)
             return result;
         
-        // Otherwise invoke onFailure and return the final resulting TFailure...
+        // Otherwise invoke onFailure...
         var finalFailure = await onFailure(currentT, result.AsT1);
-        return finalFailure;
+
+        // and return the final resulting TFailure as long as it is a TFailure!
+        return finalFailure.IsT1 ? finalFailure : result.AsT1;
     }
 
     /// <summary>
@@ -111,7 +111,9 @@ public static class AsynchronousMethodChainingExtensions
 
         // Unless we have an OnFailure job to do...
         var finalFailure = await onFailure(currentT, result.AsT1);
-        return finalFailure;
+
+        // and return the final resulting TFailure as long as it is a TFailure!
+        return finalFailure.IsT1 ? finalFailure : result.AsT1;
     }
     
     /// <summary>
@@ -193,18 +195,18 @@ public static class AsynchronousMethodChainingExtensions
     }
 
     /// <summary>
-        /// Extension method which enables method chaining. This method accepts an array of tasks which will be executed in parallel. This method will return immediately once the first task has completed.
-        /// The result (T or TFailure) of the first completed task will be returned. The results of all other tasks are ignored.
-        /// Please note, the T is passed into each task by ref, so care must be taken around any mutation of any state on the T, i.e. a property should probably not be mutated by more than one task.
-        /// See the other Then extension methods for an explanation of how to chain a flow of tasks.
-        /// </summary>
-        /// <typeparam name="T">Represents success, also likely contains any state needed to perform any operations and possibly store any results from processing in the chain. This will be passed to all tasks.</typeparam>
-        /// <typeparam name="TFailure">Represents a failure at some point in the chain.</typeparam>
-        /// <param name="currentJobResult">The resulting Task of the previous link in the chain.</param>
-        /// <param name="tasks">A list a tasks to execute in parallel, </param>
-        /// <returns></returns>
-        public static async Task<OneOf<T, TFailure>> ThenWaitForFirst<T, TFailure>(
-        this Task<OneOf<T, TFailure>> currentJobResult, params Func<T, Task<OneOf<T, TFailure>>>[] tasks)
+    /// Extension method which enables method chaining. This method accepts an array of tasks which will be executed in parallel. This method will return immediately once the first task has completed.
+    /// The result (T or TFailure) of the first completed task will be returned. The results of all other tasks are ignored.
+    /// Please note, the T is passed into each task by ref, so care must be taken around any mutation of any state on the T, i.e. a property should probably not be mutated by more than one task.
+    /// See the other Then extension methods for an explanation of how to chain a flow of tasks.
+    /// </summary>
+    /// <typeparam name="T">Represents success, also likely contains any state needed to perform any operations and possibly store any results from processing in the chain. This will be passed to all tasks.</typeparam>
+    /// <typeparam name="TFailure">Represents a failure at some point in the chain.</typeparam>
+    /// <param name="currentJobResult">The resulting Task of the previous link in the chain.</param>
+    /// <param name="tasks">A list a tasks to execute in parallel, </param>
+    /// <returns></returns>
+    public static async Task<OneOf<T, TFailure>> ThenWaitForFirst<T, TFailure>(
+    this Task<OneOf<T, TFailure>> currentJobResult, params Func<T, Task<OneOf<T, TFailure>>>[] tasks)
     {
         // Inspect result of (probably already awaited) currentJobResult, if its a TFailure return it...
         var TOrFailure = await currentJobResult;
@@ -215,6 +217,5 @@ public static class AsynchronousMethodChainingExtensions
             return TOrFailure;
         
         return await await Task.WhenAny(tasks.Select(async task => await task(TOrFailure.AsT0)));
-    } }
-
-// consider cancellation support?
+    }
+}

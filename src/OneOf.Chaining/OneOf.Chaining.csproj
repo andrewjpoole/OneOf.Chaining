@@ -13,14 +13,14 @@
 	<RepositoryUrl>https://github.com/andrewjpoole/OneOf.Chaining</RepositoryUrl>
 	<PackageTags>Async method chaining, Clear Orchestration, OneOf</PackageTags>
 	<PackageReleaseNotes>
+		1.3.0) Package updates and fixed bug where OnFailure could return a TSuccess causing subsequent chained methods to run despite the previous Failure.
 		1.2.0) Package updates and targeting netstandard2.1 and embedded symbols in package for ease of debugging
 		1.1.0) Added parallel ThenWaitForAll and ThenWaitForFirst methods
 		1.0.0) initial version
 	</PackageReleaseNotes>
-	<Version>1.2.0</Version>
+	<Version>1.3.0</Version>
 	<RepositoryType>github</RepositoryType>
 	<PackageLicenseExpression>MIT</PackageLicenseExpression>
-	<!--<IncludeSymbols>true</IncludeSymbols>-->
 	<EmbedAllSources>true</EmbedAllSources>
 	<DebugType>Embedded</DebugType>
 	<GenerateDocumentationFile>True</GenerateDocumentationFile>
