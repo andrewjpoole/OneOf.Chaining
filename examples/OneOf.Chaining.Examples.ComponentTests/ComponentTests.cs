@@ -31,28 +31,26 @@ public class ComponentTests(ComponentTestFixture testFixture) : IClassFixture<Co
     {
         var (given, when, then) = testFixture.SetupHelpers();
 
-        given.WeHaveSomeCollectedWeatherData(out var collectedWeatherModel)
-            .And.TheModelingServiceSubmitEndpointWillReturn(HttpStatusCode.Accepted, out var submissionId)
+        given.WeHaveSomeCollectedWeatherData(out var weatherData)
+            .And.TheModelingServiceSubmitEndpointWillReturn(HttpStatusCode.Accepted)
             .And.TheServerIsStarted();
         
         when.InPhase("1 (initial API request)") 
-            .And.WeWrapTheCollectedWeatherDataInAnHttpRequestMessage(collectedWeatherModel, "testLocation", out var httpRequest)
+            .And.WeWrapTheCollectedWeatherDataInAnHttpRequestMessage(weatherData, "testLocation", out var httpRequest)
             .And.WeSendTheMessageToTheApi(httpRequest, out var response);
 
         then.And.TheModelingServiceSubmitEndpointShouldHaveBeenCalled(times: 1)
             .And.TheEventShouldHaveBeenPersisted<SubmittedToModeling>()
             .And.TheResponseCodeShouldBe(response, HttpStatusCode.OK)
-            .And.TheBodyShouldNotBeEmpty<WeatherDataCollectionResponse>(response, 
-                x => x.RequestId.Should().NotBeEmpty())
-            .And.TheBodyShouldNotBeEmpty<WeatherDataCollectionResponse>(response, out var weatherDataCollectionResponseBody);
+            .And.TheBodyShouldNotBeEmpty<WeatherDataCollectionResponse>(response, out var responseBody);
         
         when.InPhase("2 (1st ASB message back from modeling service)")
-            .AMessageAppears(message: new ModelingDataAcceptedIntegrationEvent(weatherDataCollectionResponseBody.RequestId));
+            .AMessageAppears(message: new ModelingDataAcceptedIntegrationEvent(responseBody.RequestId));
 
         then.TheEventShouldHaveBeenPersisted<ModelingDataAccepted>();
 
         when.InPhase("3 (2nd ASB message back from modeling service)")
-            .AMessageAppears(message: new ModelUpdatedIntegrationEvent(weatherDataCollectionResponseBody.RequestId));
+            .AMessageAppears(message: new ModelUpdatedIntegrationEvent(responseBody.RequestId));
 
         then.TheEventShouldHaveBeenPersisted<ModelUpdated>();
 

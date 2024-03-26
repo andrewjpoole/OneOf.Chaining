@@ -41,9 +41,9 @@ public class Given
         return this;
     }
 
-    public Given TheModelingServiceSubmitEndpointWillReturn(HttpStatusCode statusCode, out Guid submissionId)
+    public Given TheModelingServiceSubmitEndpointWillReturn(HttpStatusCode statusCode)
     {
-        submissionId = Guid.NewGuid();
+        var submissionId = Guid.NewGuid();
         fixture.ApiFactory.MockWeatherModelingServiceHttpMessageHandler
             .SetupRequest(HttpMethod.Post, r => r.RequestUri!.ToString().StartsWith($"{Constants.WeatherModelingServiceBaseUrl}{Constants.WeatherModelingServiceSubmissionUri}"))
             .ReturnsResponse(statusCode, new StringContent(submissionId.ToString()));
