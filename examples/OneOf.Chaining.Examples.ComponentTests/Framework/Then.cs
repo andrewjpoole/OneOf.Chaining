@@ -1,12 +1,8 @@
 using System.Net;
 using System.Text.Json;
 using FluentAssertions;
-using FluentAssertions.Equivalency;
 using Moq;
 using Moq.Contrib.HttpClient;
-using OneOf.Chaining.Examples.Application.Models.Requests;
-using OneOf.Chaining.Examples.Application.Services;
-using OneOf.Chaining.Examples.Domain;
 using OneOf.Chaining.Examples.Domain.EventSourcing;
 
 namespace OneOf.Chaining.Examples.Tests.Framework;
@@ -93,7 +89,7 @@ public class Then
     {
         var typeOfT = typeof(T);
         var eventClassName = typeOfT.FullName ?? typeOfT.Name;
-        fixture.RealSharedEventRepository?.PersistedEvents.Should().Contain(e => e.EventClassName == eventClassName,
+        fixture.EventRepository?.PersistedEvents.Should().Contain(e => e.EventClassName == eventClassName,
             $"{fixture.CurrentPhase}expected an event of type {eventClassName} to have been persisted in the database.");
 
         return this;

@@ -23,7 +23,7 @@ public class CollectedWeatherDataOrchestrator :
     public CollectedWeatherDataOrchestrator(
         IEventPersistenceService eventPersistenceService,
         IWeatherModelingService weatherModelingService,
-        INotificationService notificationService,
+        INotificationService notificationService, 
         IContributorPaymentService contributorPaymentService)
     {
         this.eventPersistenceService = eventPersistenceService;
@@ -32,19 +32,22 @@ public class CollectedWeatherDataOrchestrator :
         this.contributorPaymentService = contributorPaymentService;
     }
 
-    public Task<OneOf<WeatherDataCollectionResponse, Failure>> Handle(string weatherDataLocation, CollectedWeatherDataModel weatherDataModel, 
+    public Task<OneOf<WeatherDataCollectionResponse, Failure>> Handle(string weatherDataLocation, 
+        CollectedWeatherDataModel weatherDataModel, 
         IWeatherDataValidator weatherDataValidator, 
         ILocationManager locationManager)
     {
         if (weatherDataValidator.Validate(weatherDataModel, out var errors) == false)
-            return Task.FromResult(OneOf<WeatherDataCollectionResponse, Failure>.FromT1(new InvalidRequestFailure(errors)));
+            return Task.FromResult(OneOf<WeatherDataCollectionResponse, Failure>
+                .FromT1(new InvalidRequestFailure(errors)));
 
         var requestId = Guid.NewGuid();
-        return WeatherDataCollection.PersistOrHydrate(eventPersistenceService, requestId, Event.Create(new WeatherDataCollectionInitiated(weatherDataModel.ToEntity(), weatherDataLocation), requestId))
+        return WeatherDataCollection.PersistOrHydrate(eventPersistenceService, requestId, 
+                Event.Create(new WeatherDataCollectionInitiated(weatherDataModel.ToEntity(), weatherDataLocation), requestId))
             .Then(locationManager.Locate)
             .Then(contributorPaymentService.CreatePendingPayment)
-            .Then(weatherModelingService.Submit, // Calls async external service, handlers for the various responses can be found below... 
-                (collection, failure) => contributorPaymentService.RevokePendingPayment(collection)) 
+            .Then(weatherModelingService.Submit, 
+                (c, failure) => contributorPaymentService.RevokePendingPayment(c)) 
             .ToResult(WeatherDataCollectionResponse.FromWeatherDataCollection);
     }
     /*

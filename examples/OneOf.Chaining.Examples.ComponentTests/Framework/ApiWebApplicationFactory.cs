@@ -40,7 +40,7 @@ public class ApiWebApplicationFactory : WebApplicationFactory<WebAPI.Program>
 
         var host = base.CreateHost(builder);
 
-        //RealSharedEventRepository = (WeatherDataPersistence)host.Services.GetService<IWeatherDataPersistence>()!; // todo: add an underlying layer to mock in future.
+        //EventRepository = (WeatherDataPersistence)host.Services.GetService<IWeatherDataPersistence>()!; // todo: add an underlying layer to mock in future.
 
         return host;
     }

@@ -9,15 +9,15 @@ public class ComponentTestFixture : IDisposable
     public readonly ApiWebApplicationFactory ApiFactory;
     public readonly EventListenerWebApplicationFactory EventListenerFactory;
 
-    public EventRepository RealSharedEventRepository = new();
+    public EventRepository EventRepository = new();
 
     public ComponentTestFixture()
     {
         ApiFactory = new ApiWebApplicationFactory();
-        ApiFactory.SetSharedEventRepository = () => RealSharedEventRepository;
+        ApiFactory.SetSharedEventRepository = () => EventRepository;
 
         EventListenerFactory = new EventListenerWebApplicationFactory();
-        EventListenerFactory.SetSharedEventRepository = () => RealSharedEventRepository;
+        EventListenerFactory.SetSharedEventRepository = () => EventRepository;
     }
 
     public void Dispose()
