@@ -5,35 +5,35 @@ namespace OneOf.Chaining.Tests;
 
 public class AsynchronousMethodChainingTests
 {
-    async Task<OneOf<StateStore, Error>> Job1(StateStore s)
+    static async Task<OneOf<StateStore, Error>> Job1(StateStore s)
     {
         await Task.Delay(100);
         s.Flag1 = true;
         return s;
     }
 
-    async Task<OneOf<StateStore, Error>> Job2(StateStore s)
+    static async Task<OneOf<StateStore, Error>> Job2(StateStore s)
     {
         await Task.Delay(200);
         s.Flag2 = true;
         return s;
     }
 
-    async Task<OneOf<StateStore, Error>> Job3(StateStore s)
+    static async Task<OneOf<StateStore, Error>> Job3(StateStore s)
     {
         await Task.Delay(300);
         s.Flag3 = true;
         return s;
     }
 
-    async Task<OneOf<StateStore, Error>> Job4(StateStore s)
+    static async Task<OneOf<StateStore, Error>> Job4(StateStore s)
     {
         await Task.Delay(400);
         s.Flag4 = true;
         return s;
     }
 
-    async Task<OneOf<StateStore, Error>> Job5(StateStore s)
+    static async Task<OneOf<StateStore, Error>> Job5(StateStore s)
     {
         await Task.Delay(500);
         s.Flag5 = true;

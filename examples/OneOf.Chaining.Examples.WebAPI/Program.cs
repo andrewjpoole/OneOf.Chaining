@@ -34,7 +34,7 @@ public class Program
             .AddSingleton<IWeatherDataValidator, WeatherDataValidator>()
             .AddSingleton<ILocationManager, LocationManager>()
             .AddSingleton<IContributorPaymentService, ContributorPaymentService>()
-            .AddWeatherModelingService(builder.Configuration.GetSection(WeatherModelingServiceOptions.ConfigSectionName).Get<WeatherModelingServiceOptions>())
+            .AddWeatherModelingService(builder.Configuration.GetSection(WeatherModelingServiceOptions.ConfigSectionName).Get<WeatherModelingServiceOptions>()!)
             .AddSingleton(typeof(IRefitClientWrapper<>), typeof(RefitClientWrapper<>));
 
         var app = builder.Build();

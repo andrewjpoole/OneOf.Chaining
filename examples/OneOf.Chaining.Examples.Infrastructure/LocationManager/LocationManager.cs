@@ -7,7 +7,7 @@ namespace OneOf.Chaining.Examples.Infrastructure.LocationManager;
 
 public class LocationManager : ILocationManager
 {
-    private readonly Dictionary<string, Guid> knownLocations = new();
+    private readonly Dictionary<string, Guid> knownLocations = [];
 
     public async Task<OneOf<WeatherDataCollection, Failure>> Locate(WeatherDataCollection weatherDataCollection)
     {

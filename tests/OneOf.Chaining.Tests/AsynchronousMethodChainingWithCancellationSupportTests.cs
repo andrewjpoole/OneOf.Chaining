@@ -50,7 +50,8 @@ public class AsynchronousMethodChainingWithCancellationSupportTests
     public async Task A_chain_of_thens_completes_all_jobs_when_all_jobs_return_success()
     {
         var cts = new CancellationTokenSource();
-        Task<OneOf<StateStore, Error>> Create() => Task.FromResult((OneOf<StateStore, Error>)new StateStore());
+
+        static Task<OneOf<StateStore, Error>> Create() => Task.FromResult((OneOf<StateStore, Error>)new StateStore());
 
         var result = await Create()
             .Then(Job1, cts.Token)
@@ -150,9 +151,10 @@ public class AsynchronousMethodChainingWithCancellationSupportTests
     public async Task ToResult_converts_T_into_success_if_last_job_is_successful()
     {
         var cts = new CancellationTokenSource();
-        Task<OneOf<StateStore, Error>> Create() => Task.FromResult((OneOf<StateStore, Error>)new StateStore());
 
-        var result = await Create().ToResult(store => new Success(), cts.Token);
+        static Task<OneOf<StateStore, Error>> Create() => Task.FromResult((OneOf<StateStore, Error>)new StateStore());
+
+        var result = await Create().ToResult(_ => new Success(), cts.Token);
 
         Assert.That(result.IsT0, Is.True);
     }
@@ -161,9 +163,9 @@ public class AsynchronousMethodChainingWithCancellationSupportTests
     public async Task ToResult_returns_TFailure_if_last_job_returns_a_TFailure()
     {
         var cts = new CancellationTokenSource();
-        Task<OneOf<StateStore, Error>> Create() => Task.FromResult((OneOf<StateStore, Error>)new Error());
+        static Task<OneOf<StateStore, Error>> Create() => Task.FromResult((OneOf<StateStore, Error>)new Error());
 
-        var result = await Create().ToResult(store => new Success(), cts.Token);
+        var result = await Create().ToResult(_ => new Success(), cts.Token);
 
         Assert.That(result.IsT1, Is.True);
     }
@@ -176,7 +178,7 @@ public class AsynchronousMethodChainingWithCancellationSupportTests
 
         var result = await state
             .Then(Job1, cts.Token)
-            .ThenWaitForAll(cts.Token, true, Job2, (s, ct) => Job3(s, ct).Then((s, ct) => Job4(s, ct), cts.Token))
+            .ThenWaitForAll(cts.Token, true, Job2, (s, ct) => Job3(s, ct).Then(Job4, cts.Token))
             .Then(Job5, cts.Token);
 
         Assert.That(result.AsT0.Flag1, Is.True);
@@ -200,7 +202,7 @@ public class AsynchronousMethodChainingWithCancellationSupportTests
     [Test]
     public async Task OperationCanceledException_is_thrown_from_within_Then_when_the_CancellationToken_is_cancelled_by_a_timeout()
     {
-        Task<OneOf<StateStore, Error>> Create() => Task.FromResult((OneOf<StateStore, Error>)new StateStore());
+        static Task<OneOf<StateStore, Error>> Create() => Task.FromResult((OneOf<StateStore, Error>)new StateStore());
         
         var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(120));
 
@@ -213,7 +215,7 @@ public class AsynchronousMethodChainingWithCancellationSupportTests
     [Test]
     public async Task ThenWaitForAll_should_execute_all_tasks_before_returning_Error_if_one_of_the_tasks_returns_an_error()
     {
-        async Task<OneOf<StateStore, Error>> Job2WhichReturnsError(StateStore s, CancellationToken ct)
+        static async Task<OneOf<StateStore, Error>> Job2WhichReturnsError(StateStore s, CancellationToken ct)
         {
             await Task.Delay(100, CancellationToken.None);
             return new Error();
@@ -246,7 +248,7 @@ public class AsynchronousMethodChainingWithCancellationSupportTests
         var state = Task.FromResult((OneOf<StateStore, Error>)new StateStore());
 
         // todo think of more meaningful strategy to test...
-        OneOf<StateStore, Error> TaskResultMergingStrategy(StateStore input, CancellationToken ct, IEnumerable<OneOf<StateStore, Error>> results)
+        static OneOf<StateStore, Error> TaskResultMergingStrategy(StateStore input, CancellationToken ct, IEnumerable<OneOf<StateStore, Error>> results)
         {
             return results.First();
         }
@@ -269,7 +271,7 @@ public class AsynchronousMethodChainingWithCancellationSupportTests
         var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(160));
         var state = Task.FromResult((OneOf<StateStore, Error>)new StateStore());
 
-        async Task<OneOf<StateStore, Error>> CancellableLongRunningJob(StateStore s, CancellationToken ct)
+        static async Task<OneOf<StateStore, Error>> CancellableLongRunningJob(StateStore s, CancellationToken ct)
         {
             var count = 0;
             while (ct.IsCancellationRequested == false)
@@ -295,7 +297,7 @@ public class AsynchronousMethodChainingWithCancellationSupportTests
         var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(160));
         var state = Task.FromResult((OneOf<StateStore, Error>)new StateStore());
 
-        async Task<OneOf<StateStore, Error>> CancellableLongRunningJob(StateStore s, CancellationToken ct)
+        static async Task<OneOf<StateStore, Error>> CancellableLongRunningJob(StateStore s, CancellationToken ct)
         {
             var count = 0;
             while (true)

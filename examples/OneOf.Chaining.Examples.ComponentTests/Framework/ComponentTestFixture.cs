@@ -13,15 +13,20 @@ public class ComponentTestFixture : IDisposable
 
     public ComponentTestFixture()
     {
-        ApiFactory = new ApiWebApplicationFactory();
-        ApiFactory.SetSharedEventRepository = () => EventRepository;
+        ApiFactory = new()
+        {
+            SetSharedEventRepository = () => EventRepository
+        };
 
-        EventListenerFactory = new EventListenerWebApplicationFactory();
-        EventListenerFactory.SetSharedEventRepository = () => EventRepository;
+        EventListenerFactory = new()
+        {
+            SetSharedEventRepository = () => EventRepository
+        };
     }
 
     public void Dispose()
     {
+        GC.SuppressFinalize(this);
         ApiFactory.HttpClient?.Dispose();
         EventListenerFactory.HttpClient?.Dispose();
     }
