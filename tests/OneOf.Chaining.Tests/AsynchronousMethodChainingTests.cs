@@ -281,4 +281,5 @@ public class StateStore
     public bool Flag3 { get; set; }
     public bool Flag4 { get; set; }
     public bool Flag5 { get; set; }
+    public int Count { get; set; }
 }
