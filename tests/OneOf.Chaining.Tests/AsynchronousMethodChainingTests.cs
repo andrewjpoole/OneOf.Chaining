@@ -272,6 +272,72 @@ public class AsynchronousMethodChainingTests
 
         Assert.That(result.IsT1);
     }
+
+    [Test]
+    public async Task ThenForEach_should_perform_specified_task_for_each_item_provided()
+    {
+        var state = Task.FromResult((OneOf<StateStore, Error>)new StateStore());
+
+        string[] getItems = ["Flag1", "Flag2", "Flag3"];
+
+        var result = await state
+            .ThenForEach(_ => getItems, TaskForEachItem);
+
+        async Task<OneOf<StateStore, Error>> TaskForEachItem(StateStore store, string item)
+        {
+            switch (item)
+            {
+                case "Flag1":
+                    store.Flag1 = true; break;
+                case "Flag2":
+                    store.Flag2 = true; break;
+                case "Flag3":
+                    store.Flag3 = true; break;
+            }
+            return store;
+        }
+
+        Assert.That(result.IsT0);
+        Assert.That(result.AsT0.Flag1, Is.True);
+        Assert.That(result.AsT0.Flag2, Is.True);
+        Assert.That(result.AsT0.Flag3, Is.True);
+        Assert.That(result.AsT0.Flag4, Is.False);
+        Assert.That(result.AsT0.Flag5, Is.False);
+    }
+    
+    [Test]
+    public async Task ThenForEach_should_perform_specified_task_for_each_item_provided_until_one_returns_a_failure()
+    {
+        string[] getItems = ["Flag1", "Flag2", "Flag3", "Flag4"];
+
+        var state = Task.FromResult((OneOf<StateStore, Error>)new StateStore());
+
+        var result = await state
+            .ThenForEach(_ => getItems, TaskForEachItem);
+
+        async Task<OneOf<StateStore, Error>> TaskForEachItem(StateStore store, string item)
+        {
+            switch (item)
+            {
+                case "Flag1":
+                    store.Flag1 = true; break;
+                case "Flag2":
+                    store.Flag2 = true; break;
+                case "Flag3":
+                    return OneOf<StateStore, Error>.FromT1(new Error());
+                case "Flag4":
+                    store.Flag4 = true; break;
+            }
+            return store;
+        }
+
+        Assert.That(result.IsT1);
+        Assert.That(state.Result.AsT0.Flag1, Is.True);
+        Assert.That(state.Result.AsT0.Flag2, Is.True);
+        Assert.That(state.Result.AsT0.Flag3, Is.False);
+        Assert.That(state.Result.AsT0.Flag4, Is.False);
+        Assert.That(state.Result.AsT0.Flag5, Is.False);
+    }
 }
 
 public class StateStore

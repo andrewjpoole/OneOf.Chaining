@@ -36,4 +36,9 @@ public async Task<OneOf<WeatherReport, Failure>> Handle(string requestedRegion, 
 
 For an explanation, see my blog post [here](https://forkinthecode.net/2023/07/19/async-method-chaining.html) or on [ClearBank's Medium publication here](https://medium.com/clearbank/async-method-chaining-in-c-8f15d162bcee)
 
-Now includes `ThenWaitForAll()` and `ThenWaitForFirst()` methods which accept a list of tasks to be executed in parallel.
+Includes 
+* `Then()` which enables fluent chaining of any method which returns a `Task<OneOf<Tsuccess, Tfailure>>`.
+* Overload of `Then()` which takes an onFailure func, useful for tidying up previous tasks. Also able to mutate the Tfailure result.
+* `IfThen()` which takes a func of Tsuccess and bool, which should return true in order to invoke the nextJob.
+* `ThenWaitForAll()` and `ThenWaitForFirst()` methods which accept a list of tasks to be executed in parallel.
+* Versions of all extension methods with Cancellation support
