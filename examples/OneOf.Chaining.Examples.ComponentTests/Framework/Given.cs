@@ -34,7 +34,7 @@ public class Given
         return this;
     }
 
-    public Given TheServerIsStarted()
+    public Given TheServersAreStarted()
     {
         fixture.ApiFactory.Start();
         fixture.EventListenerFactory.Start();

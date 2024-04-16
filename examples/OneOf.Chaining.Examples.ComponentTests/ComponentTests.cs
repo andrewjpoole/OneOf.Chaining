@@ -17,7 +17,7 @@ public class ComponentTests(ComponentTestFixture testFixture) : IClassFixture<Co
         var (given, when, then) = testFixture.SetupHelpers();
 
         given.WeHaveAWeatherReportRequest("bristol", DateTime.Now, out var apiRequest)
-            .And.TheServerIsStarted();
+            .And.TheServersAreStarted();
 
         when.WeSendTheMessageToTheApi(apiRequest, out var response);
 
@@ -33,7 +33,7 @@ public class ComponentTests(ComponentTestFixture testFixture) : IClassFixture<Co
 
         given.WeHaveSomeCollectedWeatherData(out var weatherData)
             .And.TheModelingServiceSubmitEndpointWillReturn(HttpStatusCode.Accepted)
-            .And.TheServerIsStarted();
+            .And.TheServersAreStarted();
         
         when.InPhase("1 (initial API request)") 
             .And.WeWrapTheCollectedWeatherDataInAnHttpRequestMessage(weatherData, "testLocation", out var httpRequest)
