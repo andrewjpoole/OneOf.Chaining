@@ -23,7 +23,7 @@ public class GetWeatherReportRequestHandler : IGetWeatherReportRequestHandler
 
     /*
     // Example of what we didn't want...
-    public async Task<OneOf<WeatherReport, Failure>> Handle(
+    public async Task<OneOf<WeatherReport, Failure>> HandleGetWeatherReport(
         string requestedRegion, DateTime requestedDate)
     {
         var isValidRequest = await regionValidator.Validate(requestedRegion);
@@ -69,7 +69,7 @@ public class GetWeatherReportRequestHandler : IGetWeatherReportRequestHandler
 
     */
     
-    public async Task<OneOf<WeatherReportResponse, Failure>> Handle(
+    public async Task<OneOf<WeatherReportResponse, Failure>> HandleGetWeatherReport(
         string requestedRegion, DateTime requestedDate)
     {
         var settings = "34h5gm4h5g"; // An example of a variable in scope that can be captured in the lambda and passed into a chained method below...

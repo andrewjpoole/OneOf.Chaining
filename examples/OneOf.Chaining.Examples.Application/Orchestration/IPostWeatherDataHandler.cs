@@ -4,8 +4,8 @@ using OneOf.Chaining.Examples.Domain.Outcomes;
 
 namespace OneOf.Chaining.Examples.Application.Orchestration;
 
-public interface IPostWeatherReportDataHandler
+public interface IPostWeatherDataHandler
 {
-    Task<OneOf<WeatherDataCollectionResponse, Failure>> Handle(string weatherDataLocation, CollectedWeatherDataModel weatherDataModel, 
+    Task<OneOf<WeatherDataCollectionResponse, Failure>> HandlePostWeatherData(string weatherDataLocation, CollectedWeatherDataModel weatherDataModel, 
         IWeatherDataValidator weatherDataValidator, ILocationManager locationManager);
 }

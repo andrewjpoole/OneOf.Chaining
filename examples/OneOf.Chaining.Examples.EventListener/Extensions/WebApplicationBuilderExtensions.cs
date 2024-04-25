@@ -31,7 +31,7 @@ public static class WebApplicationBuilderExtensions
         
         services
             .AddSingleton<IGetWeatherReportRequestHandler, GetWeatherReportRequestHandler>()
-            .AddSingleton<IPostWeatherReportDataHandler, CollectedWeatherDataOrchestrator>()
+            .AddSingleton<IPostWeatherDataHandler, CollectedWeatherDataOrchestrator>()
             .AddSingleton<IRegionValidator, RegionValidator>()
             .AddSingleton<IDateChecker, DateChecker>()
             .AddSingleton<IWeatherForecastGenerator, WeatherForecastGenerator>()

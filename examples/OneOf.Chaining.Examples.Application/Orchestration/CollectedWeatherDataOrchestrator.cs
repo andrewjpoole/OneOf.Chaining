@@ -10,7 +10,7 @@ using OneOf.Chaining.Examples.Domain.ServiceDefinitions;
 namespace OneOf.Chaining.Examples.Application.Orchestration;
 
 public class CollectedWeatherDataOrchestrator : 
-    IPostWeatherReportDataHandler,
+    IPostWeatherDataHandler,
     IEventHandler<ModelingDataAcceptedIntegrationEvent>, 
     IEventHandler<ModelingDataRejectedIntegrationEvent>,
     IEventHandler<ModelUpdatedIntegrationEvent>
@@ -32,7 +32,7 @@ public class CollectedWeatherDataOrchestrator :
         this.contributorPaymentService = contributorPaymentService;
     }
 
-    public Task<OneOf<WeatherDataCollectionResponse, Failure>> Handle(string weatherDataLocation, 
+    public Task<OneOf<WeatherDataCollectionResponse, Failure>> HandlePostWeatherData(string weatherDataLocation, 
         CollectedWeatherDataModel weatherDataModel, 
         IWeatherDataValidator weatherDataValidator, 
         ILocationManager locationManager)
@@ -92,33 +92,27 @@ public class CollectedWeatherDataOrchestrator :
      */
     public async Task HandleEvent(ModelingDataAcceptedIntegrationEvent dataAcceptedIntegrationEvent)
     {
-        var result = await WeatherDataCollection.Hydrate(eventPersistenceService, dataAcceptedIntegrationEvent.RequestId)
+        await WeatherDataCollection.Hydrate(eventPersistenceService, dataAcceptedIntegrationEvent.RequestId)
             .Then(x => x.AppendModelingDataAcceptedEvent())
             .Then(contributorPaymentService.CommitPendingPayment)
-            .Then(x => x.AppendSubmissionCompleteEvent());
-
-        if (result.IsT1)
-            throw new Exception($"Something went wrong while handling {nameof(ModelingDataAcceptedIntegrationEvent)}");
+            .Then(x => x.AppendSubmissionCompleteEvent())
+            .ThrowOnFailure(nameof(ModelingDataAcceptedIntegrationEvent));
     }
 
     public async Task HandleEvent(ModelingDataRejectedIntegrationEvent dataRejectedIntegrationEvent)
     {
-        var result = await WeatherDataCollection.Hydrate(eventPersistenceService, dataRejectedIntegrationEvent.RequestId)
+        await WeatherDataCollection.Hydrate(eventPersistenceService, dataRejectedIntegrationEvent.RequestId)
             .Then(x => x.AppendModelingDataRejectedEvent(dataRejectedIntegrationEvent.Reason))
-            .Then(contributorPaymentService.RevokePendingPayment);
-
-        if (result.IsT1)
-            throw new Exception($"Something went wrong while handling {nameof(ModelingDataRejectedIntegrationEvent)}");
+            .Then(contributorPaymentService.RevokePendingPayment)
+            .ThrowOnFailure(nameof(ModelingDataRejectedIntegrationEvent));
     }
 
     public async Task HandleEvent(ModelUpdatedIntegrationEvent integrationEvent)
     {
-        var result = await WeatherDataCollection.Hydrate(eventPersistenceService, integrationEvent.RequestId)
+        await WeatherDataCollection.Hydrate(eventPersistenceService, integrationEvent.RequestId)
             .Then(x => x.AppendModelUpdatedEvent())
-            .Then(notificationService.NotifyModelUpdated);
-
-        if (result.IsT1)
-            throw new Exception($"Something went wrong while handling {nameof(ModelUpdatedIntegrationEvent)}");
+            .Then(notificationService.NotifyModelUpdated)
+            .ThrowOnFailure(nameof(ModelUpdatedIntegrationEvent));
     }
 }
 

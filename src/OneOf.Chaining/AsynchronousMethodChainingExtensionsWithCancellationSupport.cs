@@ -1,15 +1,13 @@
-﻿// ReSharper disable InconsistentNaming
-
-namespace OneOf.Chaining;
+﻿namespace OneOf.Chaining;
 
 /// <summary>
-/// A set of extension methods which allow chaining of methods in a nice fluent, english sentence like chain or flow.
+/// A set of extension methods which allow chaining of methods in a nice fluent, english sentence like chain or flow, with cancellation support.
 /// In order to be chained a method need only return a Task Of OneOf Ts or Tf, where Ts == Success and Tf == Failure.
 /// </summary>
-public static class AsynchronousMethodChainingExtensions
+public static class AsynchronousMethodChainingExtensionsWithCancellationSupport
 {
     /// <summary>
-    /// Extension method which enables method chaining.
+    /// Extension method which enables method chaining. Supports cancellation.
     /// Each method in the chain must accept a <typeparamref name="Ts"/> and return a Task&lt;OneOf&lt;<typeparamref name="Ts"/>, <typeparamref name="Tf"/>&gt;&gt;,
     /// where <typeparamref name="Ts"/> == Success and <typeparamref name="Tf"/> == Failure.<br/>
     /// The result of the <paramref name="previousJobResult"/> Task is evaluated and if it contains a <typeparamref name="Tf"/>, that <typeparam name="Tf"></typeparam> will be immediately returned.<br/>
@@ -19,22 +17,28 @@ public static class AsynchronousMethodChainingExtensions
     /// <typeparam name="Tf">Represents a failure at some point in the chain.</typeparam>
     /// <param name="previousJobResult">The resulting Task of the previous link in the chain.</param>
     /// <param name="nextJob">A Func containing the next piece of work in the chain.</param>
+    /// <param name="ct">A token which enables cancellation, checked immediately and also passed into the lambda to enable checking for cancellation at more granular levels.</param>
+    /// <param name="throwOnCancellation">Flag which can be used to disable calling of ThrowIfCancellationRequested(), useful for cancelling gracefully while still returning some result etc.</param>
     /// <returns>A Task&lt;OneOf&lt;<typeparamref name="Ts"/>, <typeparamref name="Tf"/>&gt;&gt;, which enables these extension methods to form a chain.</returns>
     public static async Task<OneOf<Ts, Tf>> Then<Ts, Tf>(
         this Task<OneOf<Ts, Tf>> previousJobResult,
-        Func<Ts, Task<OneOf<Ts, Tf>>> nextJob)
+        Func<Ts, CancellationToken, Task<OneOf<Ts, Tf>>> nextJob,
+        CancellationToken ct, bool throwOnCancellation = true)
     {
         // Inspect result of (probably already awaited) previousJobResult, if it's a Tf return it...
         var TOrFailure = await previousJobResult;
         if (TOrFailure.IsT1)
             return TOrFailure;
 
+        if (throwOnCancellation)
+            ct.ThrowIfCancellationRequested();
+
         // ...Otherwise, do your next job
-        return await nextJob(TOrFailure.AsT0);
+        return await nextJob(TOrFailure.AsT0, ct);
     }
 
     /// <summary>
-    /// Extension method which enables method chaining.
+    /// Extension method which enables method chaining. Supports cancellation.
     /// Each method in the chain must accept a <typeparamref name="Ts"/> and return a Task&lt;OneOf&lt;<typeparamref name="Ts"/>, <typeparamref name="Tf"/>&gt;&gt;,
     /// where <typeparamref name="Ts"/> == Success and <typeparamref name="Tf"/> == Failure.<br/>
     /// The result of the <paramref name="previousJobResult"/> Task is evaluated and if it contains a <typeparamref name="Tf"/>, that <typeparam name="Tf"></typeparam> will be immediately returned.<br/>
@@ -47,34 +51,40 @@ public static class AsynchronousMethodChainingExtensions
     /// <param name="nextJob">A Func containing the next piece of work in the chain.</param>
     /// <param name="onFailure">A Func which will be invoked if a <typeparamref name="Tf"/> has been returned, it is passed the <typeparamref name="Ts"/> and the <typeparamref name="Tf"/>
     /// and should perform any tidying up tasks as a result of the Failure, before returning the final <typeparamref name="Tf"/> to be passed down the chain.</param>
+    /// <param name="ct">A token which enables cancellation, checked immediately and also passed into the lambda to enable checking for cancellation at more granular levels.</param>
+    /// <param name="throwOnCancellation">Flag which can be used to disable calling of ThrowIfCancellationRequested(), useful for cancelling gracefully while still returning some result etc.</param>
     /// <returns>A Task&lt;OneOf&lt;<typeparamref name="Ts"/>, <typeparamref name="Tf"/>&gt;&gt;, which enables these extension methods to form a chain.</returns>
     public static async Task<OneOf<Ts, Tf>> Then<Ts, Tf>(
         this Task<OneOf<Ts, Tf>> previousJobResult,
-        Func<Ts, Task<OneOf<Ts, Tf>>> nextJob,
-        Func<Ts, Tf, Task<OneOf<Ts,Tf>>> onFailure)
+        Func<Ts, CancellationToken, Task<OneOf<Ts, Tf>>> nextJob,
+        Func<Ts, Tf, CancellationToken, Task<OneOf<Ts, Tf>>> onFailure,
+        CancellationToken ct, bool throwOnCancellation = true)
     {
         // Inspect result of (probably already awaited) previousJobResult, if it's a Tf return it...
         var TOrFailure = await previousJobResult;
         if (TOrFailure.IsT1)
             return TOrFailure;
 
+        if (throwOnCancellation)
+            ct.ThrowIfCancellationRequested();
+
         // ...Otherwise, do your next job ... 
         var currentTs = TOrFailure.AsT0;
-        var result = await nextJob(currentTs);
+        var result = await nextJob(currentTs, ct);
 
         // If next job returned a  Ts (Success) return it...
         if (result.IsT0)
             return result;
-        
+
         // Otherwise invoke onFailure...
-        var finalFailure = await onFailure(currentTs, result.AsT1);
+        var finalFailure = await onFailure(currentTs, result.AsT1, ct);
 
         // and return the final resulting Tf as long as it is a Tf!
         return finalFailure.IsT1 ? finalFailure : result.AsT1;
     }
 
     /// <summary>
-    /// Extension method which enables method chaining. This version evaluates an additional Func <paramref name="condition"/> and only invokes <paramref name="nextJob"/> if it returns True.<br/>
+    /// Extension method which enables method chaining. Supports cancellation. This version evaluates an additional Func <paramref name="condition"/> and only invokes <paramref name="nextJob"/> if it returns True.<br/>
     /// Each method in the chain must accept a <typeparamref name="Ts"/> and return a Task&lt;OneOf&lt;<typeparamref name="Ts"/>, <typeparamref name="Tf"/>&gt;&gt;,
     /// where <typeparamref name="Ts"/> == Success and <typeparamref name="Tf"/> == Failure.<br/>
     /// The result of the <paramref name="previousJobResult"/> Task is evaluated and if it contains a <typeparamref name="Tf"/>, that <typeparam name="Tf"></typeparam> will be immediately returned.<br/>
@@ -89,25 +99,31 @@ public static class AsynchronousMethodChainingExtensions
     /// <param name="nextJob">A Func containing the next piece of work in the chain.</param>
     /// <param name="onFailure">A Func which will be invoked if a <typeparamref name="Tf"/> has been returned, it is passed the <typeparamref name="Ts"/> and the <typeparamref name="Tf"/>
     /// and should perform any tidying up tasks as a result of the Failure, before returning the final <typeparamref name="Tf"/> to be passed down the chain.</param>
+    /// <param name="ct">A token which enables cancellation, checked immediately and also passed into the lambda to enable checking for cancellation at more granular levels.</param>
+    /// <param name="throwOnCancellation">Flag which can be used to disable calling of ThrowIfCancellationRequested(), useful for cancelling gracefully while still returning some result etc.</param>
     /// <returns>A Task&lt;OneOf&lt;<typeparamref name="Ts"/>, <typeparamref name="Tf"/>&gt;&gt;, which enables these extension methods to form a chain.</returns>
     public static async Task<OneOf<Ts, Tf>> IfThen<Ts, Tf>(
         this Task<OneOf<Ts, Tf>> previousJobResult,
-        Func<Ts, bool> condition,
-        Func<Ts, Task<OneOf<Ts, Tf>>> nextJob,
-        Func<Ts, Tf, Task<OneOf<Ts, Tf>>>? onFailure = null)
+        Func<Ts, CancellationToken, bool> condition,
+        Func<Ts, CancellationToken, Task<OneOf<Ts, Tf>>> nextJob,
+        CancellationToken ct, bool throwOnCancellation = true,
+        Func<Ts, Tf, CancellationToken, Task<OneOf<Ts, Tf>>>? onFailure = null)
     {
         // Inspect result of (probably already awaited) previousJobResult, if it's a Tf return it...
         var TOrFailure = await previousJobResult;
         if (TOrFailure.IsT1)
             return TOrFailure;
 
+        if (throwOnCancellation)
+            ct.ThrowIfCancellationRequested();
+
         // Otherwise invoke the condition to decide whether to skip...
         var currentTs = TOrFailure.AsT0;
-        if (condition(currentTs) is false)
+        if (condition(currentTs, ct) is false)
             return currentTs;
 
         // Or run the next job...
-        var result = await nextJob(currentTs);
+        var result = await nextJob(currentTs, ct);
 
         // Return if successful
         if (result.IsT0)
@@ -118,14 +134,14 @@ public static class AsynchronousMethodChainingExtensions
             return result;
 
         // Unless we have an OnFailure job to do...
-        var finalFailure = await onFailure(currentTs, result.AsT1);
+        var finalFailure = await onFailure(currentTs, result.AsT1, ct);
 
         // and return the final resulting Tf as long as it is a Tf!
         return finalFailure.IsT1 ? finalFailure : result.AsT1;
     }
 
     /// <summary>
-    /// Extension method which enables method chaining. This version enables looping over a collection of <typeparamref name="Titem"/>s.<br/>
+    /// Extension method which enables method chaining. Supports cancellation. This version enables looping over a collection of <typeparamref name="Titem"/>s.<br/>
     /// Each method in the chain must accept a <typeparamref name="Ts"/> and return a Task&lt;OneOf&lt;<typeparamref name="Ts"/>, <typeparamref name="Tf"/>&gt;&gt;,
     /// where <typeparamref name="Ts"/> == Success and <typeparamref name="Tf"/> == Failure.<br/>
     /// The result of the <paramref name="previousJobResult"/> Task is evaluated and if it contains a <typeparamref name="Tf"/>, that <typeparam name="Tf"></typeparam> will be immediately returned.<br/>
@@ -142,18 +158,21 @@ public static class AsynchronousMethodChainingExtensions
     /// <param name="taskForEachItem">A Func which will be call for each <typeparamref name="Titem"/> and should return a Task of OneOf <typeparamref name="Ts"/> or <typeparamref name="Tf"/>.</param>
     /// <param name="onFailure">A Func which will be invoked if a <typeparamref name="Tf"/> has been returned, it is passed the <typeparamref name="Ts"/> and the <typeparamref name="Tf"/>
     /// and should perform any tidying up tasks as a result of the Failure, before returning the final <typeparamref name="Tf"/> to be passed down the chain.</param>
+    /// /// <param name="ct">A token which enables cancellation, checked immediately and also passed into the lambda to enable checking for cancellation at more granular levels.</param>
+    /// <param name="throwOnCancellation">Flag which can be used to disable calling of ThrowIfCancellationRequested(), useful for cancelling gracefully while still returning some result etc.</param>
     /// <returns>A Task&lt;OneOf&lt;<typeparamref name="Ts"/>, <typeparamref name="Tf"/>&gt;&gt;, which enables these extension methods to form a chain.</returns>
     public static async Task<OneOf<Ts, Tf>> ThenForEach<Ts, Tf, Titem>(
         this Task<OneOf<Ts, Tf>> previousJobResult,
         Func<Ts, IEnumerable<Titem>> itemsToIterateOver,
-        Func<Ts, Titem, Task<OneOf<Ts, Tf>>> taskForEachItem,
+        Func<Ts, Titem, CancellationToken, Task<OneOf<Ts, Tf>>> taskForEachItem,
+        CancellationToken ct, bool throwOnCancellation = true,
         Func<Ts, Tf, Task<OneOf<Ts, Tf>>>? onFailure = null)
     {
         // Inspect result of (probably already awaited) previousJobResult, if it's a Tf return it...
         var TOrFailure = await previousJobResult;
         if (TOrFailure.IsT1)
             return TOrFailure;
-
+        
         // Fetch items to iterate over
         var currentTs = TOrFailure.AsT0;
         var items = itemsToIterateOver(currentTs);
@@ -162,9 +181,12 @@ public static class AsynchronousMethodChainingExtensions
         OneOf<Ts, Tf> itemResult = currentTs;
         foreach (Titem item in items)
         {
+            if (throwOnCancellation)
+                ct.ThrowIfCancellationRequested();
+
             // Pass previous itemResult into the task...
-            itemResult = await taskForEachItem(itemResult.AsT0, item);
-            
+            itemResult = await taskForEachItem(itemResult.AsT0, item, ct);
+
             if (itemResult.IsT1)
                 break;
         }
@@ -195,9 +217,17 @@ public static class AsynchronousMethodChainingExtensions
     /// <typeparam name="TResult">The new type to convert the <typeparamref name="Ts"/> into.</typeparam>
     /// <param name="previousJobResult">The resulting Task of the previous link in the chain.</param>
     /// <param name="convertToResult">A func provided to do the conversion.</param>
-    /// <returns>A Task&lt;OneOf&lt;<typeparamref name="Ts"/>, <typeparamref name="Tf"/>&gt;&gt;, which enables these extension methods to form a chain.</returns>
-    public static async Task<OneOf<TResult, Tf>> ToResult<TResult, Ts, Tf>(this Task<OneOf<Ts, Tf>> previousJobResult, Func<Ts, TResult> convertToResult)
+    /// <param name="ct">A token which enables cancellation, checked immediately and also passed into the lambda to enable checking for cancellation at more granular levels.</param>
+    /// <param name="throwOnCancellation">Flag which can be used to disable calling of ThrowIfCancellationRequested(), useful for cancelling gracefully while still returning some result etc.</param>
+    /// <returns>A Task of OneOf TResult or Tf, where the TResult has been converted from T.</returns>
+    public static async Task<OneOf<TResult, Tf>> ToResult<TResult, Ts, Tf>(
+        this Task<OneOf<Ts, Tf>> previousJobResult, 
+        Func<Ts, TResult> convertToResult, 
+        CancellationToken ct, bool throwOnCancellation = true)
     {
+        if (throwOnCancellation)
+            ct.ThrowIfCancellationRequested();
+
         // Await final job, return cascaded Tf or new Success.
         var TOrFailure = await previousJobResult;
         return TOrFailure.Match<OneOf<TResult, Tf>>(
@@ -206,7 +236,7 @@ public static class AsynchronousMethodChainingExtensions
     }
 
     /// <summary>
-    /// Extension method which enables method chaining. This method accepts an array of tasks which will be executed in parallel. This method will return once all tasks have completed.<br/>
+    /// Extension method which enables method chaining. Supports cancellation. This method accepts an array of tasks which will be executed in parallel. This method will return once all tasks have completed.
     /// Each method in the chain must accept a <typeparamref name="Ts"/> and return a Task&lt;OneOf&lt;<typeparamref name="Ts"/>, <typeparamref name="Tf"/>&gt;&gt;,
     /// where <typeparamref name="Ts"/> == Success and <typeparamref name="Tf"/> == Failure.<br/>
     /// Please note, the <typeparamref name="Ts"/> is passed into each task by ref, so care must be taken around any mutation of any state on the <typeparamref name="Ts"/>.<br/>
@@ -218,16 +248,22 @@ public static class AsynchronousMethodChainingExtensions
     /// <param name="resultMergingStrategy">A func which is passed the original <typeparamref name="Ts"/> and a list of results from the Tasks,
     /// it should decide how to merge the results once they have all returned i.e. what to return from this method.</param>
     /// <param name="tasks">A list a tasks to execute in parallel.</param>
+    /// <param name="ct">A token which enables cancellation, checked immediately and also passed into the lambda to enable checking for cancellation at more granular levels.</param>
+    /// <param name="throwOnCancellation">Flag which can be used to disable calling of ThrowIfCancellationRequested(), useful for cancelling gracefully while still returning some result etc.</param>
     /// <returns>A Task&lt;OneOf&lt;<typeparamref name="Ts"/>, <typeparamref name="Tf"/>&gt;&gt;, which enables these extension methods to form a chain.</returns>
     public static async Task<OneOf<Ts, Tf>> ThenWaitForAll<Ts, Tf>(
-        this Task<OneOf<Ts, Tf>> previousJobResult, 
-        Func<Ts, List<OneOf<Ts, Tf>>, OneOf<Ts, Tf>> resultMergingStrategy, 
-        params Func<Ts, Task<OneOf<Ts, Tf>>>[] tasks)
+        this Task<OneOf<Ts, Tf>> previousJobResult,
+        Func<Ts, CancellationToken, List<OneOf<Ts, Tf>>, OneOf<Ts, Tf>> resultMergingStrategy,
+        CancellationToken ct, bool throwOnCancellation = true,
+        params Func<Ts, CancellationToken, Task<OneOf<Ts, Tf>>>[] tasks)
     {
         // Inspect result of (probably already awaited) previousJobResult, if it's a Tf return it...
         var TOrFailure = await previousJobResult;
         if (TOrFailure.IsT1)
             return TOrFailure;
+
+        if (throwOnCancellation)
+            ct.ThrowIfCancellationRequested();
 
         if (tasks.Length == 0)
             return TOrFailure;
@@ -235,16 +271,16 @@ public static class AsynchronousMethodChainingExtensions
         var taskResults = new List<OneOf<Ts, Tf>>();
         await Task.WhenAll(tasks.Select(async task =>
         {
-            taskResults.Add(await task(TOrFailure.AsT0));
+            taskResults.Add(await task(TOrFailure.AsT0, ct));
         }));
-        
-        var finalResult = resultMergingStrategy(TOrFailure.AsT0, taskResults);
+
+        var finalResult = resultMergingStrategy(TOrFailure.AsT0, ct, taskResults);
 
         return finalResult;
     }
 
     /// <summary>
-    /// Extension method which enables method chaining. This method accepts an array of tasks which will be executed in parallel. This method will return once all tasks have completed.<br/>
+    /// Extension method which enables method chaining. Supports cancellation. This method accepts an array of tasks which will be executed in parallel. This method will return once all tasks have completed.<br/>
     /// Each method in the chain must accept a <typeparamref name="Ts"/> and return a Task&lt;OneOf&lt;<typeparamref name="Ts"/>, <typeparamref name="Tf"/>&gt;&gt;,
     /// where <typeparamref name="Ts"/> == Success and <typeparamref name="Tf"/> == Failure.<br/>
     /// Please note, the <typeparamref name="Ts"/> is passed into each task by ref, so care must be taken around any mutation of any state on the <typeparamref name="Ts"/>.<br/>
@@ -256,18 +292,21 @@ public static class AsynchronousMethodChainingExtensions
     /// <typeparam name="Ts">Represents success, also likely contains any required state/results for processing in the chain.</typeparam>
     /// <typeparam name="Tf">Represents a failure at some point in the chain.</typeparam>
     /// <param name="previousJobResult">The resulting Task of the previous link in the chain.</param>
+    /// <param name="ct">A token which enables cancellation, checked immediately and also passed into the lambda to enable checking for cancellation at more granular levels.</param>
+    /// <param name="throwOnCancellation">Flag which can be used to disable calling of ThrowIfCancellationRequested(), useful for cancelling gracefully while still returning some result etc.</param>
     /// <param name="tasks">A list a tasks to execute in parallel, </param>
     /// <returns>A Task&lt;OneOf&lt;<typeparamref name="Ts"/>, <typeparamref name="Tf"/>&gt;&gt;, which enables these extension methods to form a chain.</returns>
     public static async Task<OneOf<Ts, Tf>> ThenWaitForAll<Ts, Tf>(
-        this Task<OneOf<Ts, Tf>> previousJobResult, 
-        params Func<Ts, Task<OneOf<Ts, Tf>>>[] tasks)
+        this Task<OneOf<Ts, Tf>> previousJobResult,
+        CancellationToken ct, bool throwOnCancellation = true,
+        params Func<Ts, CancellationToken, Task<OneOf<Ts, Tf>>>[] tasks)
     {
-        static OneOf<Ts, Tf> DefaultResultMergingStrategy(Ts inputT, List<OneOf<Ts, Tf>> results)
+        static OneOf<Ts, Tf> DefaultResultMergingStrategy(Ts inputT, CancellationToken ct, List<OneOf<Ts, Tf>> results)
         {
             return results.Any(x => x.IsT1) ? results.First(x => x.IsT1) : inputT;
         }
 
-        return await previousJobResult.ThenWaitForAll(DefaultResultMergingStrategy, tasks);
+        return await previousJobResult.ThenWaitForAll(DefaultResultMergingStrategy, ct, throwOnCancellation, tasks);
     }
 
     /// <summary>
@@ -280,19 +319,32 @@ public static class AsynchronousMethodChainingExtensions
     /// <typeparam name="Ts">Represents success, also likely contains any required state/results for processing in the chain.</typeparam>
     /// <typeparam name="Tf">Represents a failure at some point in the chain.</typeparam>
     /// <param name="previousJobResult">The resulting Task of the previous link in the chain.</param>
+    /// <param name="ct">A token which enables cancellation, checked immediately and also passed into the lambda to enable checking for cancellation at more granular levels.</param>
+    /// <param name="throwOnCancellation">Flag which can be used to disable calling of ThrowIfCancellationRequested(), useful for cancelling gracefully while still returning some result etc.</param>
     /// <param name="tasks">A list a tasks to execute in parallel.</param>
     /// <returns>A Task&lt;OneOf&lt;<typeparamref name="Ts"/>, <typeparamref name="Tf"/>&gt;&gt;, which enables these extension methods to form a chain.</returns>
     public static async Task<OneOf<Ts, Tf>> ThenWaitForFirst<Ts, Tf>(
-    this Task<OneOf<Ts, Tf>> previousJobResult, params Func<Ts, Task<OneOf<Ts, Tf>>>[] tasks)
+        this Task<OneOf<Ts, Tf>> previousJobResult,
+        CancellationToken ct, bool throwOnCancellation = true,
+        params Func<Ts, CancellationToken, Task<OneOf<Ts, Tf>>>[] tasks)
     {
         // Inspect result of (probably already awaited) previousJobResult, if it's a Tf return it...
         var TOrFailure = await previousJobResult;
         if (TOrFailure.IsT1)
             return TOrFailure;
 
+        if (throwOnCancellation)
+            ct.ThrowIfCancellationRequested();
+
         if (tasks.Length == 0)
             return TOrFailure;
-        
-        return await await Task.WhenAny(tasks.Select(async task => await task(TOrFailure.AsT0)));
+
+        var remainingTasksCanceller = CancellationTokenSource.CreateLinkedTokenSource(ct);
+
+        var result = await await Task.WhenAny(tasks.Select(async task => await task(TOrFailure.AsT0, remainingTasksCanceller.Token)));
+
+        remainingTasksCanceller.Cancel();
+
+        return result;
     }
 }

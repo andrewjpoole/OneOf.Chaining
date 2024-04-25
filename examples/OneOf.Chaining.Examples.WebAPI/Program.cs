@@ -24,7 +24,7 @@ public class Program
 
         builder.Services
             .AddSingleton<IGetWeatherReportRequestHandler, GetWeatherReportRequestHandler>()
-            .AddSingleton<IPostWeatherReportDataHandler, CollectedWeatherDataOrchestrator>()
+            .AddSingleton<IPostWeatherDataHandler, CollectedWeatherDataOrchestrator>()
             .AddSingleton<IRegionValidator, RegionValidator>()
             .AddSingleton<IDateChecker, DateChecker>()
             .AddSingleton<IWeatherForecastGenerator, WeatherForecastGenerator>()
@@ -47,16 +47,16 @@ public class Program
             [FromRoute] string region,
             [FromRoute] DateTime date,
             [FromServices] IGetWeatherReportRequestHandler handler)
-            => CreateResponseFor(() => handler.Handle(region, date)));
+            => CreateResponseFor(() => handler.HandleGetWeatherReport(region, date)));
 
         #region
         app.MapPost("/v1/collected-weather-data/{location}", (
             [FromRoute] string location,
             [FromBody] CollectedWeatherDataModel data,
-            [FromServices] IPostWeatherReportDataHandler handler,
+            [FromServices] IPostWeatherDataHandler handler,
             [FromServices] IWeatherDataValidator weatherDataValidator,
             [FromServices] ILocationManager locationManager)
-            => CreateResponseFor(() => handler.Handle(location, data, weatherDataValidator, locationManager)));
+            => CreateResponseFor(() => handler.HandlePostWeatherData(location, data, weatherDataValidator, locationManager)));
         #endregion
 
         static async Task<IResult> CreateResponseFor<TSuccess>(Func<Task<OneOf<TSuccess, Failure>>> handleRequestFunc)
