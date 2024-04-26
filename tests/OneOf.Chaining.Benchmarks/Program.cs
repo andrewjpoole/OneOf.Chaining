@@ -12,6 +12,24 @@ namespace OneOf.Chaining.Benchmarks
         }
     }
 
+    /*
+       | Method                                  | Mean       | Error    | StdDev   | Gen0   | Allocated |
+       |---------------------------------------- |-----------:|---------:|---------:|-------:|----------:|
+       | GoToEvent                               | 1,115.5 ns | 22.11 ns | 48.98 ns | 0.3948 |    2488 B |
+       | GoToEventWithCapture                    | 1,064.5 ns | 21.26 ns | 39.41 ns | 0.4101 |    2576 B |
+       | GoToEventWithoutParallel                |   293.5 ns |  8.37 ns | 24.42 ns | 0.1543 |     968 B |
+       | GoToEventWithoutChaining                |   381.5 ns |  7.45 ns | 11.61 ns | 0.1874 |    1176 B |
+       | GoToEventWithoutChainingWithoutParallel |   123.5 ns |  2.51 ns |  6.01 ns | 0.0892 |     560 B |
+       
+       // * Legends *
+         Mean      : Arithmetic mean of all measurements
+         Error     : Half of 99.9% confidence interval
+         StdDev    : Standard deviation of all measurements
+         Gen0      : GC Generation 0 collects per 1000 operations
+         Allocated : Allocated memory per single operation (managed only, inclusive, 1KB = 1024B)
+         1 ns      : 1 Nanosecond (0.000000001 sec)     
+     */
+
     [MemoryDiagnoser]
     public class JustForFun
     {
@@ -30,24 +48,56 @@ namespace OneOf.Chaining.Benchmarks
         }
 
         [Benchmark]
+        public async Task<OneOf<StateStore, Error>> GoToEventWithCapture()
+        {
+            var favouriteFlavours = new[] {"Pepperoni", "Ham&Pineapple", "Margherita"};
+            return await StateStore.Create()
+                .Then(Tasks.DriveToEvent)
+                .IfThen(s => s.FeelingHungry,
+                    s => Tasks.EatPizza(s,favouriteFlavours))
+                .ThenWaitForFirst(Tasks.FullStomach, Tasks.RunOutOfPizza)
+                .ThenWaitForAll(Tasks.LearnStuff, Tasks.AskQuestions)
+                .Then(Tasks.ChatWithNewFriends)
+                .Then(Tasks.DriveHomeHappyAndHopefullyInspired);
+        }
+
+        [Benchmark]
+        public async Task<OneOf<StateStore, Error>> GoToEventWithoutParallel()
+        {
+            var favouriteFlavours = new[] { "Pepperoni", "Ham&Pineapple", "Margherita" };
+            return await StateStore.Create()
+                .Then(Tasks.DriveToEvent)
+                .IfThen(s => s.FeelingHungry,
+                    s => Tasks.EatPizza(s, favouriteFlavours))
+                .Then(Tasks.ChatWithNewFriends)
+                .Then(Tasks.DriveHomeHappyAndHopefullyInspired);
+        }
+
+        [Benchmark]
         public async Task<OneOf<StateStore, Error>> GoToEventWithoutChaining()
         {
             var s = await StateStore.Create();
-
-            var x1 = await Tasks.DriveToEvent(s.AsT0);
-
-            var x2 = x1;
-            if (x1.AsT0.FeelingHungry)
+            s = await Tasks.DriveToEvent(s.AsT0);
+            if (s.AsT0.FeelingHungry)
             {
-                x2 = await Tasks.EatPizza(x1.AsT0, "Pepperoni", "Ham&Pineapple", "Margherita");
+                s = await Tasks.EatPizza(s.AsT0, "Pepperoni", "Ham&Pineapple", "Margherita");
             }
+            s = await await Task.WhenAny(Tasks.FullStomach(s.AsT0), Tasks.RunOutOfPizza(s.AsT0));
+            await Task.WhenAll(Tasks.LearnStuff(s.AsT0), Tasks.AskQuestions(s.AsT0));
+            var x4 = await Tasks.ChatWithNewFriends(s.AsT0);
+            return await Tasks.DriveHomeHappyAndHopefullyInspired(x4.AsT0);
+        }
 
-            var x3 = await await Task.WhenAny(Tasks.FullStomach(x2.AsT0), Tasks.RunOutOfPizza(x2.AsT0));
-
-            await Task.WhenAll(Tasks.LearnStuff(x3.AsT0), Tasks.AskQuestions(x3.AsT0));
-
-            var x4 = await Tasks.ChatWithNewFriends(x3.AsT0);
-
+        [Benchmark]
+        public async Task<OneOf<StateStore, Error>> GoToEventWithoutChainingWithoutParallel()
+        {
+            var s = await StateStore.Create();
+            s = await Tasks.DriveToEvent(s.AsT0);
+            if (s.AsT0.FeelingHungry)
+            {
+                s = await Tasks.EatPizza(s.AsT0, "Pepperoni", "Ham&Pineapple", "Margherita");
+            }
+            var x4 = await Tasks.ChatWithNewFriends(s.AsT0);
             return await Tasks.DriveHomeHappyAndHopefullyInspired(x4.AsT0);
         }
 
