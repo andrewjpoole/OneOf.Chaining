@@ -34,13 +34,12 @@ namespace OneOf.Chaining.Benchmarks
     public class JustForFun
     {
         [Benchmark]
-        public async Task<OneOf<StateStore, Error>> GoToEvent()
+        public async Task<OneOf<MeetupAtendee, Error>> GoToEvent()
         {
-            return await StateStore.Create()
+            return await MeetupAtendee.Create()
                 .Then(Tasks.DriveToEvent)
-                .IfThen(s => s.FeelingHungry,
-                    s => Tasks.EatPizza(s,
-                        "Pepperoni", "Ham&Pineapple", "Margherita"))
+                .IfThen(x => x.FeelingHungry,
+                    x => Tasks.EatPizza(x, "Pepperoni", "Ham&Pineapple", "Margherita"))
                 .ThenWaitForFirst(Tasks.FullStomach, Tasks.RunOutOfPizza)
                 .ThenWaitForAll(Tasks.LearnStuff, Tasks.AskQuestions)
                 .Then(Tasks.ChatWithNewFriends)
@@ -48,10 +47,10 @@ namespace OneOf.Chaining.Benchmarks
         }
 
         [Benchmark]
-        public async Task<OneOf<StateStore, Error>> GoToEventWithCapture()
+        public async Task<OneOf<MeetupAtendee, Error>> GoToEventWithCapture()
         {
             var favouriteFlavours = new[] {"Pepperoni", "Ham&Pineapple", "Margherita"};
-            return await StateStore.Create()
+            return await MeetupAtendee.Create()
                 .Then(Tasks.DriveToEvent)
                 .IfThen(s => s.FeelingHungry,
                     s => Tasks.EatPizza(s,favouriteFlavours))
@@ -62,10 +61,10 @@ namespace OneOf.Chaining.Benchmarks
         }
 
         [Benchmark]
-        public async Task<OneOf<StateStore, Error>> GoToEventWithoutParallel()
+        public async Task<OneOf<MeetupAtendee, Error>> GoToEventWithoutParallel()
         {
             var favouriteFlavours = new[] { "Pepperoni", "Ham&Pineapple", "Margherita" };
-            return await StateStore.Create()
+            return await MeetupAtendee.Create()
                 .Then(Tasks.DriveToEvent)
                 .IfThen(s => s.FeelingHungry,
                     s => Tasks.EatPizza(s, favouriteFlavours))
@@ -74,9 +73,9 @@ namespace OneOf.Chaining.Benchmarks
         }
 
         [Benchmark]
-        public async Task<OneOf<StateStore, Error>> GoToEventWithoutChaining()
+        public async Task<OneOf<MeetupAtendee, Error>> GoToEventWithoutChaining()
         {
-            var s = await StateStore.Create();
+            var s = await MeetupAtendee.Create();
             s = await Tasks.DriveToEvent(s.AsT0);
             if (s.AsT0.FeelingHungry)
             {
@@ -89,9 +88,9 @@ namespace OneOf.Chaining.Benchmarks
         }
 
         [Benchmark]
-        public async Task<OneOf<StateStore, Error>> GoToEventWithoutChainingWithoutParallel()
+        public async Task<OneOf<MeetupAtendee, Error>> GoToEventWithoutChainingWithoutParallel()
         {
-            var s = await StateStore.Create();
+            var s = await MeetupAtendee.Create();
             s = await Tasks.DriveToEvent(s.AsT0);
             if (s.AsT0.FeelingHungry)
             {
@@ -101,46 +100,46 @@ namespace OneOf.Chaining.Benchmarks
             return await Tasks.DriveHomeHappyAndHopefullyInspired(x4.AsT0);
         }
 
-        public class StateStore
+        public class MeetupAtendee
         {
             public string Name { get; set; } = "";
             public bool FeelingHungry;
 
-            public static Task<OneOf<StateStore, Error>> Create() =>
-                Task.FromResult(OneOf<StateStore, Error>.FromT0(new StateStore { FeelingHungry = true }));
+            public static Task<OneOf<MeetupAtendee, Error>> Create() =>
+                Task.FromResult(OneOf<MeetupAtendee, Error>.FromT0(new MeetupAtendee { FeelingHungry = true }));
         }
 
         public class Tasks
         {
-            public static async Task<OneOf<StateStore, Error>> DriveToEvent(StateStore test)
+            public static async Task<OneOf<MeetupAtendee, Error>> DriveToEvent(MeetupAtendee test)
             {
                 return test;
             }
-            public static async Task<OneOf<StateStore, Error>> EatPizza(StateStore test, params string[] availableFlavours)
+            public static async Task<OneOf<MeetupAtendee, Error>> EatPizza(MeetupAtendee test, params string[] availableFlavours)
             {
                 return test;
             }
-            public static async Task<OneOf<StateStore, Error>> FullStomach(StateStore test)
+            public static async Task<OneOf<MeetupAtendee, Error>> FullStomach(MeetupAtendee test)
             {
                 return test;
             }
-            public static async Task<OneOf<StateStore, Error>> RunOutOfPizza(StateStore test)
+            public static async Task<OneOf<MeetupAtendee, Error>> RunOutOfPizza(MeetupAtendee test)
             {
                 return test;
             }
-            public static async Task<OneOf<StateStore, Error>> LearnStuff(StateStore test)
+            public static async Task<OneOf<MeetupAtendee, Error>> LearnStuff(MeetupAtendee test)
             {
                 return test;
             }
-            public static async Task<OneOf<StateStore, Error>> AskQuestions(StateStore test)
+            public static async Task<OneOf<MeetupAtendee, Error>> AskQuestions(MeetupAtendee test)
             {
                 return test;
             }
-            public static async Task<OneOf<StateStore, Error>> ChatWithNewFriends(StateStore test)
+            public static async Task<OneOf<MeetupAtendee, Error>> ChatWithNewFriends(MeetupAtendee test)
             {
                 return test;
             }
-            public static async Task<OneOf<StateStore, Error>> DriveHomeHappyAndHopefullyInspired(StateStore test)
+            public static async Task<OneOf<MeetupAtendee, Error>> DriveHomeHappyAndHopefullyInspired(MeetupAtendee test)
             {
                 return test;
             }
