@@ -1,5 +1,5 @@
-![Nuget](https://img.shields.io/nuget/v/OneOf.Chaining?label=nuget%20version)
-![Nuget](https://img.shields.io/nuget/dt/OneOf.Chaining?label=nuget%20downloads)
+[![Nuget](https://img.shields.io/nuget/v/OneOf.Chaining?label=nuget%20version)](https://www.nuget.org/packages/OneOf.Chaining)
+[![Nuget](https://img.shields.io/nuget/dt/OneOf.Chaining?label=nuget%20downloads)](https://www.nuget.org/packages/OneOf.Chaining)
 
 # OneOf.Chaining
 Extension methods which enable method chaining in C#, using the excellent OneOf library.
