@@ -45,3 +45,5 @@ Includes
 * `IfThen()` which takes a func of Tsuccess and bool, which should return true in order to invoke the nextJob.
 * `ThenWaitForAll()` and `ThenWaitForFirst()` methods which accept a list of tasks to be executed in parallel.
 * Versions of all extension methods with Cancellation support
+
+The example project that used to be in this repository has moved to [Event sourced but flow deriven examples](https://github.com/andrewjpoole/event-sourced-but-flow-driven-example) 

@@ -9,7 +9,7 @@ public class AsynchronousMethodChainingWithCancellationSupportTests
     static async Task<OneOf<StateStore, Error>> Job1(StateStore s, CancellationToken ct)
     {
         await Task.Delay(100, CancellationToken.None);
-        TestContext.WriteLine($"{DateTime.Now:T} Job1 after delay, ct.IsCancellationRequested: {ct.IsCancellationRequested}");
+        TestContext.Out.WriteLine($"{DateTime.Now:T} Job1 after delay, ct.IsCancellationRequested: {ct.IsCancellationRequested}");
         s.Flag1 = true;
         return s;
     }
@@ -17,7 +17,7 @@ public class AsynchronousMethodChainingWithCancellationSupportTests
     static async Task<OneOf<StateStore, Error>> Job2(StateStore s, CancellationToken ct)
     {
         await Task.Delay(100, CancellationToken.None);
-        TestContext.WriteLine($"{DateTime.Now:T} Job2 after delay, ct.IsCancellationRequested: {ct.IsCancellationRequested}");
+        TestContext.Out.WriteLine($"{DateTime.Now:T} Job2 after delay, ct.IsCancellationRequested: {ct.IsCancellationRequested}");
         s.Flag2 = true;
         return s;
     }
@@ -25,7 +25,7 @@ public class AsynchronousMethodChainingWithCancellationSupportTests
     static async Task<OneOf<StateStore, Error>> Job3(StateStore s, CancellationToken ct)
     {
         await Task.Delay(100, CancellationToken.None);
-        TestContext.WriteLine($"{DateTime.Now:T} Job3 after delay, ct.IsCancellationRequested: {ct.IsCancellationRequested}");
+        TestContext.Out.WriteLine($"{DateTime.Now:T} Job3 after delay, ct.IsCancellationRequested: {ct.IsCancellationRequested}");
         s.Flag3 = true;
         return s;
     }
@@ -33,7 +33,7 @@ public class AsynchronousMethodChainingWithCancellationSupportTests
     static async Task<OneOf<StateStore, Error>> Job4(StateStore s, CancellationToken ct)
     {
         await Task.Delay(100, CancellationToken.None);
-        TestContext.WriteLine($"{DateTime.Now:T} Job4 after delay, ct.IsCancellationRequested: {ct.IsCancellationRequested}");
+        TestContext.Out.WriteLine($"{DateTime.Now:T} Job4 after delay, ct.IsCancellationRequested: {ct.IsCancellationRequested}");
         s.Flag4 = true;
         return s;
     }
@@ -41,7 +41,7 @@ public class AsynchronousMethodChainingWithCancellationSupportTests
     static async Task<OneOf<StateStore, Error>> Job5(StateStore s, CancellationToken ct)
     {
         await Task.Delay(100, CancellationToken.None);
-        TestContext.WriteLine($"{DateTime.Now:T} Job5 after delay, ct.IsCancellationRequested: {ct.IsCancellationRequested}");
+        TestContext.Out.WriteLine($"{DateTime.Now:T} Job5 after delay, ct.IsCancellationRequested: {ct.IsCancellationRequested}");
         s.Flag5 = true;
         return s;
     }

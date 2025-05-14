@@ -2,6 +2,7 @@ using OneOf.Types;
 
 namespace OneOf.Chaining.Tests;
 #pragma warning disable IDE0062 // Make local function 'static'
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
 
 public class AsynchronousMethodChainingTests
 {
